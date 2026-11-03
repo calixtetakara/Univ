@@ -1,6 +1,6 @@
+@model UniversitySystem.Web.Models.LoginViewModel
 @{
     ViewData["Title"] = "Connexion";
-    Layout = "_Layout";
 }
 
 <div class="row justify-content-center mt-5">
@@ -9,14 +9,35 @@
             <div class="card-body p-4">
                 <h3 class="card-title text-center mb-4">Connexion</h3>
 
-                <div class="alert alert-info">
-                    La page de connexion complète sera implémentée en <strong>M1</strong>.
-                </div>
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <p class="text-muted text-center">
-                    Compte Super-Admin : <code>admin@univ.local</code>
-                </p>
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" autofocus />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
