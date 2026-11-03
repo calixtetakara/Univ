@@ -24,25 +24,31 @@
                         </li>
                     </ul>
                     <ul class="navbar-nav">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item">
-                                <span class="nav-link text-light">@User.FindFirst("FullName")?.Value</span>
-                            </li>
-                            <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-link nav-link">Déconnexion</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="Login">Connexion</a>
-                            </li>
-                        }
-                        }
+                 @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link text-light">
+                                @User.FindFirst("FullName")?.Value
+                                <small class="text-muted">(@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</small>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="ChangePassword">Mot de passe</a>
+                        </li>
+                        <li class="nav-item">
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-link nav-link">Déconnexion</button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">Connexion</a>
+                        </li>
+                    }
+                                            
                     </ul>
                 </div>
             </div>

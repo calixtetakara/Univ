@@ -103,50 +103,57 @@ public class AccountController : Controller
     }
 
     // -------------------------------------------------------
-    // GET: /Account/ChangePassword
-    // -------------------------------------------------------
-    [Authorize]
-    [HttpGet]
-    public IActionResult ChangePassword()
+// GET: /Account/ChangePassword
+// -------------------------------------------------------
+[Authorize]
+[HttpGet]
+public async Task<IActionResult> ChangePassword()
+{
+    var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var user = await _context.Utilisateurs.FindAsync(userId);
+
+    if (user is null)
+        return RedirectToAction(nameof(Login));
+
+    // Si l'utilisateur n'est pas obligé de changer son mot de passe,
+    // on peut quand même l'autoriser (changement volontaire)
+    ViewBag.IsForced = user.DoitChangerMotDePasse;
+
+    return View();
+}
+
+// -------------------------------------------------------
+// POST: /Account/ChangePassword
+// -------------------------------------------------------
+[Authorize]
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+{
+    if (!ModelState.IsValid)
+        return View(model);
+
+    var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    var user = await _context.Utilisateurs.FindAsync(userId);
+
+    if (user is null)
+        return RedirectToAction(nameof(Login));
+
+    if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.MotDePasseHash))
     {
-        return View();
+        ModelState.AddModelError(nameof(model.CurrentPassword), "Mot de passe actuel incorrect.");
+        return View(model);
     }
 
-    // -------------------------------------------------------
-    // POST: /Account/ChangePassword
-    // -------------------------------------------------------
-    [Authorize]
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
-    {
-        if (!ModelState.IsValid)
-            return View(model);
+    user.MotDePasseHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+    user.DoitChangerMotDePasse = false;
+    user.DateModification = DateTime.UtcNow;
 
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    await _context.SaveChangesAsync();
 
-        var user = await _context.Utilisateurs.FindAsync(userId);
-        if (user is null)
-            return RedirectToAction(nameof(Login));
-
-        // Vérifier l'ancien mot de passe
-        if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.MotDePasseHash))
-        {
-            ModelState.AddModelError(nameof(model.CurrentPassword), "Mot de passe actuel incorrect.");
-            return View(model);
-        }
-
-        // Mettre à jour
-        user.MotDePasseHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
-        user.DoitChangerMotDePasse = false;
-        user.DateModification = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = "Mot de passe modifié avec succès.";
-        return RedirectToAction("Index", "Home");
-    }
-
+    TempData["Success"] = "Mot de passe modifié avec succès.";
+    return RedirectToAction("Index", "Home");
+}
     // -------------------------------------------------------
     // POST: /Account/Logout
     // -------------------------------------------------------
