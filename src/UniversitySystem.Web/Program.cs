@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql;
 using UniversitySystem.Infrastructure.Persistence;
-
+using UniversitySystem.Infrastructure.Persistence.Seed;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Base de données — MariaDB via Pomelo
@@ -45,6 +44,19 @@ builder.Services.AddAuthorization(options =>
 });
 
 var app = builder.Build();
+
+// ============================================================
+// 6. DataSeeder (M0-09) — uniquement en Development
+// ============================================================
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Applique les migrations manquantes puis seed
+    await db.Database.MigrateAsync();
+    await DataSeeder.SeedAsync(db);
+}
 
 // 5. Pipeline
 if (!app.Environment.IsDevelopment())

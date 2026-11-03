@@ -22,6 +22,88 @@ namespace UniversitySystem.Infrastructure.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.AuditLog", b =>
+                {
+                    b.Property<long>("IdAudit")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id_audit");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("IdAudit"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("action");
+
+                    b.Property<string>("AdresseIp")
+                        .HasMaxLength(45)
+                        .HasColumnType("varchar(45)")
+                        .HasColumnName("adresse_ip");
+
+                    b.Property<DateTime>("DateAction")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_action");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("text")
+                        .HasColumnName("details");
+
+                    b.Property<string>("Entite")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("entite");
+
+                    b.Property<string>("IdEntite")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("id_entite");
+
+                    b.Property<int?>("IdUtilisateur")
+                        .HasColumnType("int")
+                        .HasColumnName("id_utilisateur");
+
+                    b.HasKey("IdAudit");
+
+                    b.HasIndex("Action");
+
+                    b.HasIndex("DateAction");
+
+                    b.HasIndex("IdUtilisateur");
+
+                    b.ToTable("audit_logs", (string)null);
+                });
+
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.Compteur", b =>
+                {
+                    b.Property<int>("IdCompteur")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_compteur");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdCompteur"));
+
+                    b.Property<string>("Cle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("cle");
+
+                    b.Property<int>("Valeur")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("valeur");
+
+                    b.HasKey("IdCompteur");
+
+                    b.HasIndex("Cle")
+                        .IsUnique();
+
+                    b.ToTable("compteurs", (string)null);
+                });
+
             modelBuilder.Entity("UniversitySystem.Domain.Entities.DocumentEtudiant", b =>
                 {
                     b.Property<int>("IdDocument")
@@ -70,6 +152,62 @@ namespace UniversitySystem.Infrastructure.Migrations
                     b.HasIndex("IdEtudiant");
 
                     b.ToTable("documents_etudiant", (string)null);
+                });
+
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.EmailQueue", b =>
+                {
+                    b.Property<int>("IdEmail")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_email");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdEmail"));
+
+                    b.Property<string>("CorpsHtml")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("corps_html");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_creation");
+
+                    b.Property<DateTime?>("DateEnvoi")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_envoi");
+
+                    b.Property<string>("DerniereErreur")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("derniere_erreur");
+
+                    b.Property<string>("Destinataire")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("destinataire");
+
+                    b.Property<bool>("Envoye")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("envoye");
+
+                    b.Property<string>("Sujet")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)")
+                        .HasColumnName("sujet");
+
+                    b.Property<int>("Tentatives")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("tentatives");
+
+                    b.HasKey("IdEmail");
+
+                    b.ToTable("email_queue", (string)null);
                 });
 
             modelBuilder.Entity("UniversitySystem.Domain.Entities.Enseignant", b =>
@@ -181,6 +319,61 @@ namespace UniversitySystem.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("etudiants", (string)null);
+                });
+
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.ExportJob", b =>
+                {
+                    b.Property<int>("IdExportJob")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_export_job");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdExportJob"));
+
+                    b.Property<string>("CheminFichier")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("chemin_fichier");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_creation");
+
+                    b.Property<DateTime?>("DateFin")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_fin");
+
+                    b.Property<int>("IdUtilisateur")
+                        .HasColumnType("int")
+                        .HasColumnName("id_utilisateur");
+
+                    b.Property<string>("MessageErreur")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("message_erreur");
+
+                    b.Property<string>("NomFichier")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("nom_fichier");
+
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("statut");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int")
+                        .HasColumnName("type");
+
+                    b.HasKey("IdExportJob");
+
+                    b.HasIndex("IdUtilisateur");
+
+                    b.ToTable("export_jobs", (string)null);
                 });
 
             modelBuilder.Entity("UniversitySystem.Domain.Entities.Faculte", b =>
@@ -446,6 +639,89 @@ namespace UniversitySystem.Infrastructure.Migrations
                     b.HasIndex("IdInscription");
 
                     b.ToTable("paiements", (string)null);
+                });
+
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.ParametreCalendrier", b =>
+                {
+                    b.Property<int>("IdParametre")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_parametre");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdParametre"));
+
+                    b.Property<string>("AnneeAcademique")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)")
+                        .HasColumnName("annee_academique");
+
+                    b.Property<string>("Cle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("cle");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Valeur")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("valeur");
+
+                    b.HasKey("IdParametre");
+
+                    b.HasIndex("Cle", "AnneeAcademique")
+                        .IsUnique();
+
+                    b.ToTable("parametres_calendrier", (string)null);
+                });
+
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<int>("IdToken")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_token");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdToken"));
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_creation");
+
+                    b.Property<DateTime>("DateExpiration")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_expiration");
+
+                    b.Property<int>("IdUtilisateur")
+                        .HasColumnType("int")
+                        .HasColumnName("id_utilisateur");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("token");
+
+                    b.Property<bool>("Utilise")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false)
+                        .HasColumnName("utilise");
+
+                    b.HasKey("IdToken");
+
+                    b.HasIndex("IdUtilisateur");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("password_reset_tokens", (string)null);
                 });
 
             modelBuilder.Entity("UniversitySystem.Domain.Entities.Permission", b =>
@@ -820,6 +1096,17 @@ namespace UniversitySystem.Infrastructure.Migrations
                     b.Navigation("Utilisateur");
                 });
 
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.ExportJob", b =>
+                {
+                    b.HasOne("UniversitySystem.Domain.Entities.Utilisateur", "Utilisateur")
+                        .WithMany()
+                        .HasForeignKey("IdUtilisateur")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Utilisateur");
+                });
+
             modelBuilder.Entity("UniversitySystem.Domain.Entities.Filiere", b =>
                 {
                     b.HasOne("UniversitySystem.Domain.Entities.Faculte", "Faculte")
@@ -889,6 +1176,17 @@ namespace UniversitySystem.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Inscription");
+                });
+
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("UniversitySystem.Domain.Entities.Utilisateur", "Utilisateur")
+                        .WithMany()
+                        .HasForeignKey("IdUtilisateur")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Utilisateur");
                 });
 
             modelBuilder.Entity("UniversitySystem.Domain.Entities.Programmation", b =>

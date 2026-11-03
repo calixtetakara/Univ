@@ -36,6 +36,13 @@ public class AppDbContext : DbContext
     public DbSet<DocumentEtudiant> DocumentsEtudiant => Set<DocumentEtudiant>();
     public DbSet<Programmation> Programmations => Set<Programmation>();
     public DbSet<Paiement> Paiements => Set<Paiement>();
+
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<EmailQueue> EmailQueues => Set<EmailQueue>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<ParametreCalendrier> ParametresCalendrier => Set<ParametreCalendrier>();
+    public DbSet<ExportJob> ExportJobs => Set<ExportJob>();
+    public DbSet<Compteur> Compteurs => Set<Compteur>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
