@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using UniversitySystem.Infrastructure.Persistence;
 using UniversitySystem.Infrastructure.Persistence.Seed;
+using UniversitySystem.Infrastructure.Services;
+using UniversitySystem.Web.Authorization;
+using UniversitySystem.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +19,8 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var serverVersion = builder.Environment.IsDevelopment()
-        ? ServerVersion.AutoDetect(connectionString)
-        : new MariaDbServerVersion(new Version(10, 4, 32));
-
+    // Utilisation de ServerVersion.AutoDetect (compatible .NET 10)
+    var serverVersion = ServerVersion.AutoDetect(connectionString);
     options.UseMySql(connectionString, serverVersion);
 });
 
@@ -46,7 +47,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 // ============================================================
-// 4. Autorisation — FallbackPolicy (toute page exige d'être authentifié)
+// 4. Autorisation — FallbackPolicy
 // ============================================================
 builder.Services.AddAuthorization(options =>
 {
@@ -56,7 +57,19 @@ builder.Services.AddAuthorization(options =>
 });
 
 // ============================================================
-// 5. Hangfire (InMemory pour M0 — suffisant pour le développement)
+// 5. Services applicatifs (Auth + Permissions)
+// ============================================================
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+
+// Autorisation dynamique par permission
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+// ============================================================
+// 6. Hangfire (InMemory)
 // ============================================================
 builder.Services.AddHangfire(config =>
 {
@@ -68,10 +81,13 @@ builder.Services.AddHangfire(config =>
 
 builder.Services.AddHangfireServer();
 
+// ============================================================
+// Construction de l'application
+// ============================================================
 var app = builder.Build();
 
 // ============================================================
-// 6. Pipeline HTTP
+// Pipeline HTTP
 // ============================================================
 if (!app.Environment.IsDevelopment())
 {
@@ -84,32 +100,35 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+
+// Application de la règle RG-04 (enseignant avec mot de passe temporaire)
+app.UseMiddleware<UniversitySystem.Web.Middleware.TeacherPasswordSetupMiddleware>(); 
+
 app.UseAuthorization();
 
-// Dashboard Hangfire (uniquement en Development)
-if (app.Environment.IsDevelopment())
+// Dashboard Hangfire
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
-    app.UseHangfireDashboard("/hangfire", new DashboardOptions
-    {
-        Authorization = new[] { new UniversitySystem.Web.Infrastructure.HangfireAuthorizationFilter() },
-        DashboardTitle = "UnivSystem - Jobs"
-    });
-}
+    Authorization = new[] { new UniversitySystem.Web.Infrastructure.HangfireAuthorizationFilter() },
+    DashboardTitle = "UnivSystem - Jobs"
+});
 
 // ============================================================
-// 7. DataSeeder (uniquement en Development)
+// DataSeeder (au démarrage)
 // ============================================================
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
+    
+    // Application des migrations (uniquement si nécessaire)
     await db.Database.MigrateAsync();
+    
+    // Lancement du seeder (idempotent)
     await DataSeeder.SeedAsync(db);
 }
 
 // ============================================================
-// 8. Routes
+// Routes
 // ============================================================
 app.MapControllerRoute(
     name: "areas",

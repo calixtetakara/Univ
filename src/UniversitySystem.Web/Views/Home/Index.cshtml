@@ -1,29 +1,133 @@
-﻿@{
+﻿@model UniversitySystem.Web.Models.HomeViewModel
+
+@{
     ViewData["Title"] = "Accueil";
 }
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-<div class="text-center mt-5">
-    <h1 class="display-5">Système de Gestion Universitaire</h1>
-    <p class="lead mt-3">
-        Bienvenue. Connectez-vous pour accéder à votre espace.
-    </p>
 
-    @if (User.Identity?.IsAuthenticated != true)
-    {
-        <a class="btn btn-primary btn-lg mt-3" asp-controller="Account" asp-action="Login">
-            Se connecter
-        </a>
-    }
-    else
-    {
-        <div class="alert alert-success mt-4 d-inline-block">
-            Vous êtes connecté en tant que <strong>@User.Identity.Name</strong>
+<!-- 1. Section HERO -->
+<section class="bg-primary text-white text-center py-5 mb-4">
+    <div class="container">
+        <h1 class="display-4 fw-bold">Bienvenue à l'Université</h1>
+        <p class="lead">Votre avenir commence ici. Inscrivez-vous en ligne dès maintenant.</p>
+    </div>
+</section>
+
+<div class="container">
+    <!-- 2. Section DATES IMPORTANTES -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Dates Importantes</h2>
+        <div class="row justify-content-center">
+            <!-- Carte Licence -->
+            <div class="col-md-5 mb-3">
+                <div class="card h-100 shadow-sm border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Inscriptions Licence</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.LicenceOuverte)
+                        {
+                            <p class="text-success"><strong>Inscriptions ouvertes !</strong></p>
+                        }
+                        else
+                        {
+                            <p class="text-danger"><strong>Inscriptions fermées.</strong></p>
+                        }
+                        
+                        @if (Model.DateLicenceDebut != null && Model.DateLicenceFin != null)
+                        {
+                            <p class="mb-0">
+                                Du <strong>@Model.DateLicenceDebut.Value.ToString("dd/MM/yyyy")</strong> 
+                                au <strong>@Model.DateLicenceFin.Value.ToString("dd/MM/yyyy")</strong>
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">Dates non configurées pour cette année.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte Master -->
+            <div class="col-md-5 mb-3">
+                <div class="card h-100 shadow-sm border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Inscriptions Master</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.MasterOuverte)
+                        {
+                            <p class="text-success"><strong>Inscriptions ouvertes !</strong></p>
+                        }
+                        else
+                        {
+                            <p class="text-danger"><strong>Inscriptions fermées.</strong></p>
+                        }
+
+                        @if (Model.DateMasterDebut != null && Model.DateMasterFin != null)
+                        {
+                            <p class="mb-0">
+                                Du <strong>@Model.DateMasterDebut.Value.ToString("dd/MM/yyyy")</strong> 
+                                au <strong>@Model.DateMasterFin.Value.ToString("dd/MM/yyyy")</strong>
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">Dates non configurées pour cette année.</p>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
-    }
+    </section>
+
+    <!-- 3. Section "Je n'ai pas de compte" -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Je n'ai pas de compte</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-5 mb-3 text-center">
+                <div class="p-4 bg-light rounded shadow-sm">
+                    <h4>Nouveau Bachelier</h4>
+                    <p>Vous venez d'obtenir votre BAC et souhaitez vous inscrire pour la première fois.</p>
+                    <a href="/Inscription/Step1" class="btn btn-primary btn-lg w-100">Commencer mon inscription</a>
+                </div>
+            </div>
+            <div class="col-md-5 mb-3 text-center">
+                <div class="p-4 bg-light rounded shadow-sm">
+                    <h4>Ancien Bachelier</h4>
+                    <p>Vous avez déjà été inscrit et souhaitez poursuivre votre cursus.</p>
+                    <a href="/Account/Login" class="btn btn-outline-primary btn-lg w-100">Se connecter</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Section "J'ai déjà un compte" -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">J'ai déjà un compte</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form asp-controller="Account" asp-action="Login" method="post">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Adresse email</label>
+                                <input type="email" class="form-control" id="email" name="Email" required placeholder="nom@exemple.com">
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Mot de passe</label>
+                                <input type="password" class="form-control" id="password" name="Password" required>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">Se connecter</button>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="/Account/ForgotPassword">Mot de passe oublié ?</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>

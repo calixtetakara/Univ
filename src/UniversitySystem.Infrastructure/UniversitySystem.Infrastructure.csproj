@@ -1,5 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\UniversitySystem.Application\UniversitySystem.Application.csproj" />
     <ProjectReference Include="..\UniversitySystem.Domain\UniversitySystem.Domain.csproj" />
@@ -20,12 +26,9 @@
     <PackageReference Include="MimeKit" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" />
     <PackageReference Include="QuestPDF" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
 
 </Project>
