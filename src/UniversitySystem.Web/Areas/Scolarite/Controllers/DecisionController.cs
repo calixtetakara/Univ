@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using UniversitySystem.Domain.Entities;
 using UniversitySystem.Domain.Enums;
 using UniversitySystem.Infrastructure.Persistence;
+using UniversitySystem.Infrastructure.Services;
 using UniversitySystem.Web.Authorization;
 using UniversitySystem.Web.Models;
 
@@ -14,18 +17,21 @@ namespace UniversitySystem.Web.Areas.Scolarite.Controllers;
 public class DecisionController : Controller
 {
     private readonly AppDbContext _context;
+    private readonly IMatriculeService _matriculeService;
 
-    public DecisionController(AppDbContext context)
+    public DecisionController(AppDbContext context, IMatriculeService matriculeService)
     {
         _context = context;
+        _matriculeService = matriculeService;
     }
 
+    // =========================================================
+    // LISTE DES DOSSIERS (M3-02)
+    // =========================================================
     public async Task<IActionResult> Index(string? searchNom, string? codeFaculte, string? codeFiliere, int page = 1)
     {
         const int pageSize = 25;
 
-        // 1. Construction de la requête de base
-        // On cherche les étudiants dont le dossier est "Brouillon" (En cours de traitement)
         var query = _context.Etudiants
             .AsNoTracking()
             .Include(e => e.Utilisateur)
@@ -33,7 +39,6 @@ public class DecisionController : Controller
                 .ThenInclude(f => f.Faculte)
             .Where(e => e.StatutDossier == StatutInscription.Brouillon);
 
-        // 2. Application des filtres
         if (!string.IsNullOrWhiteSpace(searchNom))
         {
             var nomLower = searchNom.ToLower();
@@ -42,16 +47,11 @@ public class DecisionController : Controller
         }
 
         if (!string.IsNullOrWhiteSpace(codeFaculte))
-        {
             query = query.Where(e => e.Filiere.Faculte.CodeFaculte == codeFaculte);
-        }
 
         if (!string.IsNullOrWhiteSpace(codeFiliere))
-        {
             query = query.Where(e => e.Filiere.CodeFiliere == codeFiliere);
-        }
 
-        // 3. Pagination et tri (par date de création descendante)
         var totalCount = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
@@ -67,15 +67,10 @@ public class DecisionController : Controller
                 Prenom = e.Utilisateur.Prenom,
                 NomFaculte = e.Filiere.Faculte.NomFaculte,
                 NomFiliere = e.Filiere.NomFiliere,
-                // On récupère la date de soumission de l'inscription ou la date de création
-                DateSoumission = _context.Inscriptions
-                    .Where(i => i.IdEtudiant == e.IdEtudiant)
-                    .Select(i => i.DateSoumission ?? e.DateCreation)
-                    .FirstOrDefault()
+                DateSoumission = e.DateCreation
             })
             .ToListAsync();
 
-        // 4. Préparation du ViewModel
         var vm = new DecisionIndexViewModel
         {
             Dossiers = dossiers,
@@ -87,58 +82,230 @@ public class DecisionController : Controller
             TotalCount = totalCount
         };
 
-        // 5. Chargement des listes pour les filtres (facultés)
         ViewBag.Facultes = await _context.Facultes.ToListAsync();
-
         return View(vm);
     }
-    // Ajoute cette action à la suite de Index()
 
-[HttpGet]
-public async Task<IActionResult> Traiter(int id)
-{
-    // 1. Charger l'étudiant avec ses relations
-    var etudiant = await _context.Etudiants
-        .Include(e => e.Utilisateur)
-        .Include(e => e.Filiere)
-            .ThenInclude(f => f.Faculte)
-        .FirstOrDefaultAsync(e => e.IdEtudiant == id);
-
-    if (etudiant == null) return NotFound();
-
-    // 2. Vérifier que le dossier est bien en cours
-    if (etudiant.StatutDossier != StatutInscription.Brouillon)
+    // =========================================================
+    // TRAITER UN DOSSIER (M3-03)
+    // =========================================================
+    [HttpGet]
+    public async Task<IActionResult> Traiter(int id)
     {
-        TempData["Error"] = "Ce dossier a déjà été traité.";
-        return RedirectToAction(nameof(Index));
+        var etudiant = await _context.Etudiants
+            .Include(e => e.Utilisateur)
+            .FirstOrDefaultAsync(e => e.IdEtudiant == id);
+
+        if (etudiant == null) return NotFound();
+
+        if (etudiant.StatutDossier != StatutInscription.Brouillon)
+        {
+            TempData["Error"] = "Ce dossier a déjà été traité.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var inscription = await _context.Inscriptions
+            .Include(i => i.Filiere)
+                .ThenInclude(f => f.Faculte)
+            .FirstOrDefaultAsync(i => i.IdEtudiant == id);
+
+        if (inscription == null || inscription.Filiere == null)
+        {
+            TempData["Error"] = "Erreur : L'inscription ou la filière est introuvable pour cet étudiant.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var notes = await _context.NotesBacs
+            .Where(n => n.IdEtudiant == id)
+            .ToListAsync();
+
+        var documents = await _context.DocumentsEtudiant
+            .Where(d => d.IdEtudiant == id)
+            .ToListAsync();
+
+        var vm = new DecisionTraiterViewModel
+        {
+            Etudiant = etudiant,
+            Inscription = inscription,
+            Notes = notes,
+            Documents = documents,
+            TypeFaculte = inscription.Filiere.Faculte?.TypeFaculte.ToString() ?? "Inconnu"
+        };
+
+        etudiant.Filiere = inscription.Filiere;
+        return View(vm);
     }
 
-    // 3. Charger l'inscription
-    var inscription = await _context.Inscriptions
-        .FirstOrDefaultAsync(i => i.IdEtudiant == id);
-
-    if (inscription == null) return NotFound("Inscription introuvable.");
-
-    // 4. Charger les notes
-    var notes = await _context.NotesBacs
-        .Where(n => n.IdEtudiant == id)
-        .ToListAsync();
-
-    // 5. Charger les documents
-    var documents = await _context.DocumentsEtudiant
-        .Where(d => d.IdEtudiant == id)
-        .ToListAsync();
-
-    // 6. Préparer le ViewModel
-    var vm = new DecisionTraiterViewModel
+    // =========================================================
+    // APPROUVER (M3-06)
+    // =========================================================
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [HasPermission("DOSSIER_TRAITER")]
+    public async Task<IActionResult> Approuver(int id)
     {
-        Etudiant = etudiant,
-        Inscription = inscription,
-        Notes = notes,
-        Documents = documents,
-        TypeFaculte = etudiant.Filiere.Faculte.TypeFaculte.ToString()
-    };
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(userIdClaim, out int currentUserId);
 
-    return View(vm);
-}
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            var etudiant = await _context.Etudiants
+                .Include(e => e.Utilisateur)
+                .FirstOrDefaultAsync(e => e.IdEtudiant == id);
+
+            if (etudiant == null) return NotFound();
+
+            var inscription = await _context.Inscriptions
+                .Include(i => i.Filiere)
+                    .ThenInclude(f => f.Faculte)
+                .FirstOrDefaultAsync(i => i.IdEtudiant == id);
+
+            if (inscription == null || inscription.Filiere == null)
+            {
+                TempData["Error"] = "Inscription ou filière introuvable.";
+                return RedirectToAction(nameof(Traiter), new { id });
+            }
+
+            if (etudiant.StatutDossier != StatutInscription.Brouillon)
+            {
+                TempData["Error"] = "Ce dossier a déjà été traité.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Générer le matricule (le service utilise la même transaction)
+            var codeFaculte = inscription.Filiere.Faculte?.CodeFaculte ?? "UNK";
+            var matricule = await _matriculeService.GenerateAsync(codeFaculte);
+
+            etudiant.Matricule = matricule;
+            etudiant.StatutDossier = StatutInscription.Validee;
+
+            inscription.Statut = StatutInscription.Validee;
+            inscription.DateTraitement = DateTime.UtcNow;
+
+            _context.EmailQueues.Add(new EmailQueue
+            {
+                Destinataire = etudiant.Utilisateur.Email,
+                Sujet = "Inscription validée",
+                CorpsHtml = $"<p>Félicitations, votre inscription a été validée.</p><p>Votre matricule est : <strong>{matricule}</strong></p>",
+                Envoye = false,
+                DateCreation = DateTime.UtcNow,
+                Tentatives = 0
+            });
+
+            _context.AuditLogs.Add(new AuditLog
+            {
+                IdUtilisateur = currentUserId,
+                Action = "DOSSIER_APPROUVE",
+                Entite = "Etudiant",
+                IdEntite = id.ToString(),
+                Details = $"{{\"matricule\":\"{matricule}\", \"approvedBy\":{currentUserId}}}",
+                AdresseIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                DateAction = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            TempData["Success"] = $"Dossier approuvé ! Matricule généré : {matricule}";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            TempData["Error"] = $"Erreur lors de l'approbation : {ex.Message}";
+            return RedirectToAction(nameof(Traiter), new { id });
+        }
+    }
+
+        // =========================================================
+    // REJETER (M3-07)
+    // =========================================================
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [HasPermission("DOSSIER_TRAITER")]
+    public async Task<IActionResult> Rejeter(int id, string motif)
+    {
+        // 1. Validation du motif
+        if (string.IsNullOrWhiteSpace(motif) || motif.Length < 10)
+        {
+            TempData["Error"] = "Le motif de rejet est obligatoire (minimum 10 caractères).";
+            return RedirectToAction(nameof(Traiter), new { id });
+        }
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(userIdClaim, out int currentUserId);
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            var etudiant = await _context.Etudiants
+                .Include(e => e.Utilisateur)
+                .FirstOrDefaultAsync(e => e.IdEtudiant == id);
+
+            if (etudiant == null) return NotFound();
+
+            var inscription = await _context.Inscriptions
+                .FirstOrDefaultAsync(i => i.IdEtudiant == id);
+
+            if (inscription == null)
+            {
+                TempData["Error"] = "Inscription introuvable.";
+                return RedirectToAction(nameof(Traiter), new { id });
+            }
+
+            // 2. Idempotence
+            if (etudiant.StatutDossier != StatutInscription.Brouillon)
+            {
+                TempData["Error"] = "Ce dossier a déjà été traité.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // 3. Mise à jour de l'étudiant
+            etudiant.StatutDossier = StatutInscription.Rejetee;
+            etudiant.MotifRejet = motif;
+
+            // 4. Mise à jour de l'inscription
+            inscription.Statut = StatutInscription.Rejetee;
+            inscription.DateTraitement = DateTime.UtcNow;
+            inscription.Commentaire = motif;
+
+            // 5. Email de rejet (RG-06)
+            _context.EmailQueues.Add(new EmailQueue
+            {
+                Destinataire = etudiant.Utilisateur.Email,
+                Sujet = "Inscription rejetée",
+                CorpsHtml = $"<p>Votre dossier a été rejeté.</p><p><strong>Motif :</strong> {motif}</p>",
+                Envoye = false,
+                DateCreation = DateTime.UtcNow,
+                Tentatives = 0
+            });
+
+            // 6. Audit (RG-15)
+            _context.AuditLogs.Add(new AuditLog
+            {
+                IdUtilisateur = currentUserId,
+                Action = "DOSSIER_REJETE",
+                Entite = "Etudiant",
+                IdEntite = id.ToString(),
+                Details = $"{{\"motif\":\"{motif}\", \"rejectedBy\":{currentUserId}}}",
+                AdresseIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                DateAction = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            TempData["Success"] = "Le dossier a été rejeté et l'étudiant a été notifié.";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            TempData["Error"] = $"Erreur lors du rejet : {ex.Message}";
+            return RedirectToAction(nameof(Traiter), new { id });
+        }
+    }
 }

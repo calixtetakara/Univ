@@ -10,8 +10,16 @@
     <a asp-action="Index" class="btn btn-outline-secondary">← Retour à la liste</a>
 </div>
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <strong>Erreur :</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="row">
-    <!-- Colonne de gauche : Infos et Notes -->
+    <!-- Colonne de gauche -->
     <div class="col-md-5">
         <div class="card shadow-sm mb-3">
             <div class="card-header bg-primary text-white">
@@ -23,8 +31,6 @@
                 <p><strong>Lieu de naissance :</strong> @Model.Etudiant.LieuNaissance</p>
                 <p><strong>Genre :</strong> @Model.Etudiant.Genre</p>
                 <p><strong>Email :</strong> @Model.Etudiant.Utilisateur.Email</p>
-                
-                <!-- CORRECTION ICI : Utilisation de Inscription.Filiere -->
                 <p><strong>Faculté :</strong> @Model.Inscription.Filiere.Faculte.NomFaculte</p>
                 <p><strong>Filière :</strong> @Model.Inscription.Filiere.NomFiliere</p>
             </div>
@@ -101,17 +107,28 @@
     </div>
 </div>
 
-<!-- Modale de rejet (placeholder) -->
+<!-- Modale de rejet -->
 <div class="modal fade" id="rejetModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Rejeter le dossier</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Le rejet sera implémenté dans le prochain bloc (M3-07).</p>
-            </div>
+            <form asp-action="Rejeter" asp-route-id="@Model.Etudiant.IdEtudiant" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Rejeter le dossier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Veuillez saisir le motif de rejet. L'étudiant recevra ce motif par email.</p>
+                    <div class="mb-3">
+                        <label for="motif" class="form-label">Motif (minimum 10 caractères)</label>
+                        <textarea name="motif" id="motif" class="form-control" rows="4" required minlength="10"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Confirmer le rejet</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

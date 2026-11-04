@@ -82,6 +82,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<IMatriculeService, MatriculeService>();
 
 // Autorisation dynamique par permission (nécessite le using UniversitySystem.Web.Authorization)
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
