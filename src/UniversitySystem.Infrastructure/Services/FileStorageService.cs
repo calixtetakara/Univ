@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using MimeDetective; // Nécessite le package Mime-Detective
+using MimeDetective;
 using MimeDetective.Definitions;
 using MimeDetective.Engine;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
@@ -10,27 +11,21 @@ using System.Threading.Tasks;
 
 namespace UniversitySystem.Infrastructure.Services;
 
-/// <summary>
-/// Contrat pour le stockage sécurisé des fichiers.
-/// </summary>
 public interface IFileStorageService
 {
     Task<string> SaveUploadAsync(IFormFile file, string subDirectory);
+    string GetPhysicalPath(string relativePath);
 }
 
 /// <summary>
-/// Implémentation du service de stockage.
-/// Applique les règles de sécurité RG-07 (taille, MIME réel, anti-traversal).
+/// Service de stockage physique des fichiers (RG-07).
+/// Sécurise les uploads (taille, MIME, anti-path traversal).
 /// </summary>
 public class FileStorageService : IFileStorageService
 {
     private readonly string _rootPath;
     private static readonly IContentInspector _inspector;
 
-    /// <summary>
-    /// Initialisation statique de l'inspecteur MIME.
-    /// (On utilise des définitions par défaut pour détecter le type de fichier).
-    /// </summary>
     static FileStorageService()
     {
         _inspector = new ContentInspectorBuilder()
@@ -39,37 +34,28 @@ public class FileStorageService : IFileStorageService
         }.Build();
     }
 
-    /// <summary>
-    /// Constructeur du service.
-    /// </summary>
-    /// <param name="config">Configuration de l'application pour lire Storage:RootPath.</param>
     public FileStorageService(IConfiguration config)
     {
-        // On lit le chemin défini dans appsettings.json, sinon on utilise C:/univ-storage par défaut
-        _rootPath = config["Storage:RootPath"] ?? "C:/univ-storage";
+        // On stocke le chemin racine normalisé pour éviter les problèmes de séparateurs
+        _rootPath = Path.GetFullPath(config["Storage:RootPath"] ?? "C:/univ-storage");
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Sauvegarde un fichier uploadé de manière sécurisée (RG-07).
+    /// </summary>
     public async Task<string> SaveUploadAsync(IFormFile file, string subDirectory)
     {
-        // 1. Vérification de la présence du fichier
         if (file == null || file.Length == 0)
             throw new ValidationException("Le fichier est vide.");
 
-        // 2. Vérification de la taille (RG-07 : max 2 Mo)
         if (file.Length > 2 * 1024 * 1024)
             throw new ValidationException("Fichier trop volumineux (max 2 Mo).");
 
-        // 3. Détection du vrai type MIME
         using var stream = file.OpenReadStream();
         
-        // On inspecte le flux du fichier avec Mime-Detective
         var inspectionResults = _inspector.Inspect(stream);
-        
-        // On récupère le premier type MIME trouvé
         var mimeType = inspectionResults.ByMimeType().FirstOrDefault()?.MimeType;
 
-        // 4. On n'autorise que le PDF, le JPEG et le PNG
         if (mimeType == null || (mimeType != "application/pdf" && 
             mimeType != "image/jpeg" && 
             mimeType != "image/png"))
@@ -77,7 +63,6 @@ public class FileStorageService : IFileStorageService
             throw new ValidationException("Format non autorisé. Seuls PDF, JPG et PNG sont acceptés.");
         }
 
-        // 5. On détermine l'extension en fonction du MIME détecté
         var extension = mimeType switch
         {
             "application/pdf" => ".pdf",
@@ -86,23 +71,48 @@ public class FileStorageService : IFileStorageService
             _ => ".bin"
         };
         
-        // 6. On génère un nom aléatoire (GUID) pour éviter les collisions et le path traversal
         var fileName = $"{Guid.NewGuid():N}{extension}";
         
-        // 7. Création du dossier physique s'il n'existe pas
-        var folderPath = Path.Combine(_rootPath, subDirectory);
+        // Normalisation du sous-dossier
+        var normalizedSubDir = subDirectory.Replace("/", Path.DirectorySeparatorChar.ToString());
+        var folderPath = Path.Combine(_rootPath, normalizedSubDir);
+        
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
 
-        // 8. Construction du chemin complet
         var filePath = Path.Combine(folderPath, fileName);
-
-        // 9. Écriture du fichier sur le disque
         using var fileStream = new FileStream(filePath, FileMode.Create);
-        stream.Position = 0; // On remet le curseur au début
+        stream.Position = 0; 
         await stream.CopyToAsync(fileStream);
 
-        // 10. On retourne le chemin relatif pour la base de données (avec des slashs)
+        // On retourne un chemin relatif avec des slashs (format standard pour l'URL)
         return Path.Combine(subDirectory, fileName).Replace("\\", "/");
+    }
+
+    /// <summary>
+    /// Récupère le chemin physique absolu d'un fichier à partir de son chemin relatif (RG-11).
+    /// Protège contre le path traversal.
+    /// </summary>
+    public string GetPhysicalPath(string relativePath)
+    {
+        if (string.IsNullOrEmpty(relativePath))
+            throw new ArgumentException("Le chemin ne peut pas être vide.");
+
+        // 1. Normalisation du chemin (on force les \ de Windows)
+        var normalizedRelativePath = relativePath.Replace("/", Path.DirectorySeparatorChar.ToString());
+        
+        // 2. Combinaison et résolution du chemin absolu
+        var fullPath = Path.GetFullPath(Path.Combine(_rootPath, normalizedRelativePath));
+        
+        // 3. Normalisation de la racine pour comparaison
+        var normalizedRoot = _rootPath;
+        if (!normalizedRoot.EndsWith(Path.DirectorySeparatorChar))
+            normalizedRoot += Path.DirectorySeparatorChar;
+
+        // 4. Vérification anti-path traversal (insensible à la casse)
+        if (!fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+            throw new UnauthorizedAccessException("Tentative de path traversal détectée.");
+
+        return fullPath;
     }
 }

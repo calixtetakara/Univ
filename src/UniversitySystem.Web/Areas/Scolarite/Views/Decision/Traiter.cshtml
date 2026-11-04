@@ -1,0 +1,117 @@
+@using UniversitySystem.Domain.Enums
+@model UniversitySystem.Web.Models.DecisionTraiterViewModel
+
+@{
+    ViewData["Title"] = "Traiter le dossier";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Dossier de @Model.Etudiant.Utilisateur.Nom @Model.Etudiant.Utilisateur.Prenom</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">← Retour à la liste</a>
+</div>
+
+<div class="row">
+    <!-- Colonne de gauche : Infos et Notes -->
+    <div class="col-md-5">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Identité</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Numéro de table :</strong> @Model.Etudiant.NumTableBac (Session @Model.Etudiant.SessionBac)</p>
+                <p><strong>Date de naissance :</strong> @Model.Etudiant.DateNaissance.ToString("dd/MM/yyyy")</p>
+                <p><strong>Lieu de naissance :</strong> @Model.Etudiant.LieuNaissance</p>
+                <p><strong>Genre :</strong> @Model.Etudiant.Genre</p>
+                <p><strong>Email :</strong> @Model.Etudiant.Utilisateur.Email</p>
+                
+                <!-- CORRECTION ICI : Utilisation de Inscription.Filiere -->
+                <p><strong>Faculté :</strong> @Model.Inscription.Filiere.Faculte.NomFaculte</p>
+                <p><strong>Filière :</strong> @Model.Inscription.Filiere.NomFiliere</p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Notes du BAC</h5>
+            </div>
+            <div class="card-body">
+                @if (!Model.Notes.Any())
+                {
+                    <p class="text-muted">Aucune note enregistrée.</p>
+                }
+                else
+                {
+                    <ul class="list-group">
+                        @foreach (var note in Model.Notes)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @note.Matiere
+                                <span class="badge bg-primary rounded-pill">@note.Note.ToString("0.00") / 20</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        @if (User.HasClaim("Permission", "DOSSIER_TRAITER") || User.IsInRole("superadmin"))
+        {
+            <div class="d-grid gap-2">
+                <form asp-action="Approuver" asp-route-id="@Model.Etudiant.IdEtudiant" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success w-100">Approuver le dossier</button>
+                </form>
+                <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#rejetModal">
+                    Rejeter le dossier
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- Colonne de droite : PDF -->
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <ul class="nav nav-tabs card-header-tabs" id="docTabs" role="tablist">
+                    @for (int i = 0; i < Model.Documents.Count; i++)
+                    {
+                        var doc = Model.Documents[i];
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @(i == 0 ? "active" : "")" id="tab-@doc.IdDocument" 
+                                    data-bs-toggle="tab" data-bs-target="#doc-@doc.IdDocument" type="button" role="tab">
+                                @(doc.Type == TypeDocument.ReleveNotes ? "Relevé de notes" : "Acte de naissance")
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <div class="card-body p-0">
+                <div class="tab-content" id="docTabsContent">
+                    @for (int i = 0; i < Model.Documents.Count; i++)
+                    {
+                        var doc = Model.Documents[i];
+                        <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="doc-@doc.IdDocument" role="tabpanel">
+                            <iframe src="/Document/View/@doc.IdDocument" style="width: 100%; height: 600px; border: none;"></iframe>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale de rejet (placeholder) -->
+<div class="modal fade" id="rejetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rejeter le dossier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Le rejet sera implémenté dans le prochain bloc (M3-07).</p>
+            </div>
+        </div>
+    </div>
+</div>

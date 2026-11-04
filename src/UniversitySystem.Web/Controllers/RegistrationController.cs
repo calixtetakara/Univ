@@ -205,8 +205,11 @@ public class RegistrationController : Controller
             _context.Utilisateurs.Add(utilisateur);
             await _context.SaveChangesAsync();
 
-            // 2. Étudiant
+            // 2. Récupération de la faculté ET de la filière AVANT de créer l'étudiant
             var faculte = await _context.Facultes.FirstAsync(f => f.CodeFaculte == state.CodeFaculte);
+            var filiere = await _context.Filieres.FirstAsync(f => f.CodeFiliere == state.CodeFiliere); // <-- AJOUT
+
+            // 3. Étudiant (avec IdFiliere)
             var etudiant = new Etudiant
             {
                 IdUtilisateur = utilisateur.IdUtilisateur,
@@ -217,12 +220,13 @@ public class RegistrationController : Controller
                 Genre = state.Genre ?? Genre.Masculin,
                 StatutDossier = StatutInscription.Brouillon,
                 DateCreation = DateTime.UtcNow,
-                Matricule = null // RG-03 : Null tant que non validé
+                Matricule = null, // RG-03
+                IdFiliere = filiere.IdFiliere // <-- CORRECTION ICI
             };
             _context.Etudiants.Add(etudiant);
             await _context.SaveChangesAsync();
 
-            // 3. Notes
+            // 4. Notes
             var notes = new List<NotesBac>();
             if (faculte.TypeFaculte == TypeFaculte.Scientifique)
             {
@@ -240,18 +244,17 @@ public class RegistrationController : Controller
             _context.NotesBacs.AddRange(notes);
             await _context.SaveChangesAsync();
 
-            // 4. Upload
+            // 5. Upload
             var relevePath = await _fileStorage.SaveUploadAsync(model.ReleveBac, $"documents/{etudiant.IdEtudiant}");
             var actePath = await _fileStorage.SaveUploadAsync(model.ActeNaissance, $"documents/{etudiant.IdEtudiant}");
 
-            // 5. Documents
+            // 6. Documents
             _context.DocumentsEtudiant.AddRange(
                 new DocumentEtudiant { IdEtudiant = etudiant.IdEtudiant, Type = TypeDocument.ReleveNotes, NomFichier = model.ReleveBac.FileName, CheminFichier = relevePath, ContentType = model.ReleveBac.ContentType, TailleOctets = model.ReleveBac.Length, DateUpload = DateTime.UtcNow },
                 new DocumentEtudiant { IdEtudiant = etudiant.IdEtudiant, Type = TypeDocument.PieceIdentite, NomFichier = model.ActeNaissance.FileName, CheminFichier = actePath, ContentType = model.ActeNaissance.ContentType, TailleOctets = model.ActeNaissance.Length, DateUpload = DateTime.UtcNow }
             );
 
-            // 6. Inscription
-            var filiere = await _context.Filieres.FirstAsync(f => f.CodeFiliere == state.CodeFiliere);
+            // 7. Inscription
             _context.Inscriptions.Add(new Inscription
             {
                 IdEtudiant = etudiant.IdEtudiant,

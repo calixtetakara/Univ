@@ -1,3 +1,109 @@
-@{ ViewData["Title"] = "Table de décision"; }
-<h2 class="mt-4">Table de décision</h2>
-<p class="text-muted">La liste des dossiers en cours sera affichée ici (M3-02).</p>
+@model UniversitySystem.Web.Models.DecisionIndexViewModel
+@using UniversitySystem.Domain.Entities
+
+@{
+    ViewData["Title"] = "Table de décision";
+    var facultes = ViewBag.Facultes as List<Faculte> ?? new List<Faculte>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Table de décision</h2>
+    <span class="badge bg-primary fs-6">@Model.TotalCount dossiers en attente</span>
+</div>
+
+<!-- Formulaire de filtres (GET) -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Recherche par nom</label>
+                <input type="text" name="searchNom" value="@Model.SearchNom" class="form-control" placeholder="Nom ou prénom..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Faculté</label>
+                <select name="codeFaculte" class="form-select">
+                    <option value="">Toutes les facultés</option>
+                    @foreach (var f in facultes)
+                    {
+                        <option value="@f.CodeFaculte" selected="@(Model.CodeFaculte == f.CodeFaculte)">@f.NomFaculte</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Réinitialiser</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tableau des dossiers -->
+@if (!Model.Dossiers.Any())
+{
+    <div class="alert alert-info text-center">
+        Aucun dossier en attente de traitement.
+    </div>
+}
+else
+{
+    <div class="table-responsive shadow-sm">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Matricule</th>
+                    <th>Nom complet</th>
+                    <th>Faculté</th>
+                    <th>Filière</th>
+                    <th>Date soumission</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Dossiers)
+                {
+                    <tr>
+                        <td>
+                            @if (string.IsNullOrEmpty(d.Matricule))
+                            {
+                                <span class="badge bg-warning text-dark">En attente</span>
+                            }
+                            else
+                            {
+                                @d.Matricule
+                            }
+                        </td>
+                        <td>@d.Nom @d.Prenom</td>
+                        <td>@d.NomFaculte</td>
+                        <td>@d.NomFiliere</td>
+                        <td>@d.DateSoumission.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <a asp-action="Traiter" asp-route-id="@d.IdEtudiant" class="btn btn-sm btn-success">
+                                Traiter
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(Model.Page == i ? "active" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-page="@i" 
+                           asp-route-searchNom="@Model.SearchNom" 
+                           asp-route-codeFaculte="@Model.CodeFaculte">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}
