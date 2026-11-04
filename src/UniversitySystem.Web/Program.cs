@@ -6,14 +6,12 @@ using Microsoft.EntityFrameworkCore;
 using UniversitySystem.Infrastructure.Persistence;
 using UniversitySystem.Infrastructure.Persistence.Seed;
 using UniversitySystem.Infrastructure.Services;
-using UniversitySystem.Web.Authorization; // INDISPENSABLE pour PermissionPolicyProvider
+using UniversitySystem.Web.Authorization;
 using UniversitySystem.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ============================================================
-// 1. Base de données — MariaDB via Pomelo
-// ============================================================
+// 1. Base de données
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("ConnectionStrings:Default manquante.");
 
@@ -23,14 +21,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, serverVersion);
 });
 
-// ============================================================
 // 2. MVC
-// ============================================================
 builder.Services.AddControllersWithViews();
 
-// ============================================================
-// 3. Session (Stockage de l'état du wizard)
-// ============================================================
+// 3. Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -41,9 +35,7 @@ builder.Services.AddSession(options =>
 });
 builder.Services.AddHttpContextAccessor();
 
-// ============================================================
 // 4. Authentification Cookie
-// ============================================================
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -58,9 +50,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "Univ.Auth";
     });
 
-// ============================================================
-// 5. Autorisation — FallbackPolicy
-// ============================================================
+// 5. Autorisation
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
@@ -68,29 +58,33 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
-// ============================================================
 // 6. Services applicatifs
-// ============================================================
 builder.Services.AddMemoryCache();
 builder.Services.AddDataProtection();
-
-// Service de stockage de l'état (Session)
 builder.Services.AddScoped<IRegistrationStateStore, SessionRegistrationStateStore>();
-
-// Services métier
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IMatriculeService, MatriculeService>();
+// Services de paiement
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-// Autorisation dynamique par permission (nécessite le using UniversitySystem.Web.Authorization)
+// Gateway (Fake en dev, Real en prod)
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<IPaymentGatewayClient, FakePaymentGateway>();
+}
+else
+{
+    builder.Services.AddScoped<IPaymentGatewayClient, RealPaymentGateway>();
+}
+
+// Autorisation dynamique
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
-// ============================================================
-// 7. Hangfire (InMemory)
-// ============================================================
+// 7. Hangfire
 builder.Services.AddHangfire(config =>
 {
     config.UseInMemoryStorage();
@@ -100,14 +94,9 @@ builder.Services.AddHangfire(config =>
 });
 builder.Services.AddHangfireServer();
 
-// ============================================================
-// Construction de l'application
-// ============================================================
 var app = builder.Build();
 
-// ============================================================
 // Pipeline HTTP
-// ============================================================
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -118,23 +107,18 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// Activation de la Session (indispensable pour le wizard)
 app.UseSession();
-
 app.UseAuthentication();
 app.UseMiddleware<TeacherPasswordSetupMiddleware>(); 
 app.UseAuthorization();
 
-// Dashboard Hangfire
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
     Authorization = new[] { new UniversitySystem.Web.Infrastructure.HangfireAuthorizationFilter() },
     DashboardTitle = "UnivSys - Jobs"
 });
 
-// ============================================================
-// DataSeeder (au démarrage)
-// ============================================================
+// DataSeeder
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -142,9 +126,7 @@ using (var scope = app.Services.CreateScope())
     await DataSeeder.SeedAsync(db);
 }
 
-// ============================================================
 // Routes
-// ============================================================
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");

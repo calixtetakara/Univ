@@ -1,0 +1,24 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Simulation de paiement";
+    var reference = ViewBag.Reference as string;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">Prestataire fictif (Développement)</h4>
+            </div>
+            <div class="card-body text-center">
+                <p>Vous allez simuler un paiement réussi pour la référence :</p>
+                <p><code>@reference</code></p>
+                
+                <form asp-action="ProcessFakePayment" method="post">
+                    <input type="hidden" name="reference" value="@reference" />
+                    <button type="submit" class="btn btn-success btn-lg w-100">Simuler le paiement réussi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

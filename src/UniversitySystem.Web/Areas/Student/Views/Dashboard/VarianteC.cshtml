@@ -1,0 +1,26 @@
+@model UniversitySystem.Domain.Entities.Etudiant
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Mon dossier";
+}
+
+<div class="alert alert-danger">
+    <h4 class="alert-heading">Votre dossier a été rejeté</h4>
+    <p><strong>Motif :</strong> @Model.MotifRejet</p>
+    <hr />
+    <p>Veuillez corriger votre dossier et le resoumettre.</p>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <p><strong>Nom :</strong> @Model.Utilisateur.Nom @Model.Utilisateur.Prenom</p>
+        <p><strong>Faculté :</strong> @Model.Filiere?.Faculte?.NomFaculte</p>
+        <p><strong>Filière :</strong> @Model.Filiere?.NomFiliere</p>
+        <div class="d-grid gap-2 mt-3">
+            <a asp-area="Student" asp-controller="Correction" asp-action="Index" class="btn btn-warning">
+                Corriger et resoumettre mon dossier
+            </a>
+        </div>
+    </div>
+</div>

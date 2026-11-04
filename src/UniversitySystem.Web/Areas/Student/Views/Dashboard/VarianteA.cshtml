@@ -1,0 +1,66 @@
+@model UniversitySystem.Domain.Entities.Etudiant
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Mon dossier";
+    var timeLeft = ViewData["TimeLeft"] as TimeSpan? ?? TimeSpan.Zero;
+}
+
+<div class="alert alert-warning">
+    <h4 class="alert-heading">Statut : Dossier en cours de traitement</h4>
+    <p>Options de paiement indisponibles.</p>
+    <hr />
+    <p class="mb-0">
+        <strong>Compte à rebours (48h) :</strong> 
+        <span id="countdown" class="fw-bold text-danger">
+            @timeLeft.ToString(@"hh\:mm\:ss")
+        </span>
+    </p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-primary text-white">Identité</div>
+            <div class="card-body">
+                <p><strong>Nom :</strong> @Model.Utilisateur.Nom @Model.Utilisateur.Prenom</p>
+                <p><strong>Numéro de table :</strong> @Model.NumTableBac (Session @Model.SessionBac)</p>
+                <p><strong>Date de naissance :</strong> @Model.DateNaissance.ToString("dd/MM/yyyy")</p>
+                <p><strong>Lieu de naissance :</strong> @Model.LieuNaissance</p>
+                <p><strong>Email :</strong> @Model.Utilisateur.Email</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-info text-white">Parcours</div>
+            <div class="card-body">
+                <p><strong>Faculté :</strong> @Model.Filiere?.Faculte?.NomFaculte</p>
+                <p><strong>Filière :</strong> @Model.Filiere?.NomFiliere</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let timeLeftSeconds = @((int)timeLeft.TotalSeconds);
+        const countdownEl = document.getElementById('countdown');
+
+        function updateCountdown() {
+            if (timeLeftSeconds <= 0) {
+                countdownEl.textContent = "Délai dépassé";
+                return;
+            }
+            timeLeftSeconds--;
+            const h = String(Math.floor(timeLeftSeconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((timeLeftSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(timeLeftSeconds % 60).padStart(2, '0');
+            countdownEl.textContent = `${h}:${m}:${s}`;
+        }
+
+        if (timeLeftSeconds > 0) {
+            setInterval(updateCountdown, 1000);
+        }
+    </script>
+}

@@ -6,29 +6,18 @@ using UniversitySystem.Infrastructure.Persistence;
 namespace UniversitySystem.Infrastructure.Persistence.Seed;
 
 /// <summary>
-/// Seeder idempotent du Milestone 0, 2 et 3.
+/// Seeder idempotent du Milestone 0, 2, 3 et 4.
 /// Insère les rôles, permissions, super-admin, paramètres et données de test.
 /// </summary>
 public static class DataSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        // 1. Rôles système (5)
         await SeedRolesAsync(context);
-
-        // 2. Permissions (21)
         await SeedPermissionsAsync(context);
-
-        // 3. Matrice RolePermission
         await SeedRolePermissionsAsync(context);
-
-        // 4. Super-Admin initial
         await SeedSuperAdminAsync(context);
-
-        // 5. Paramètres calendrier
         await SeedParametresCalendrierAsync(context);
-
-        // 6. Facultés, Filières et UE (pour tester)
         await SeedFacultesEtFilieresAsync(context);
     }
 
@@ -78,7 +67,10 @@ public static class DataSeeder
             new() { Code = "DOSSIER_LIRE",       Nom = "Voir les dossiers",               Description = "Consulter la table de décision" },
             new() { Code = "DOSSIER_TRAITER",    Nom = "Traiter les dossiers",            Description = "Approuver ou rejeter un dossier" },
             new() { Code = "CONFIG_ACADEMIQUE",  Nom = "Configurer l'académique",         Description = "Gérer les facultés, filières et UE" },
-            new() { Code = "ETUDIANTS_LISTER",   Nom = "Lister les étudiants",            Description = "Voir la liste globale des étudiants" }
+            new() { Code = "ETUDIANTS_LISTER",   Nom = "Lister les étudiants",            Description = "Voir la liste globale des étudiants" },
+
+            // Nouvelles permissions (M4)
+            new() { Code = "PAIEMENT_EFFECTUER", Nom = "Effectuer un paiement", Description = "Permet de payer les frais de scolarité" }
         };
 
         await context.Permissions.AddRangeAsync(permissions);
@@ -94,7 +86,7 @@ public static class DataSeeder
 
         var matrix = new List<(string RoleCode, string[] PermissionCodes)>
         {
-            // SuperAdmin a TOUTES les permissions (y compris les nouvelles)
+            // SuperAdmin a TOUTES les permissions
             ("superadmin", perms.Keys.ToArray()),
             
             // Scolarité
@@ -111,9 +103,11 @@ public static class DataSeeder
                 "notes.saisie", "notes.view", "programmation.view", "dashboard.view"
             }),
             
+            // Étudiant (avec la nouvelle permission)
             ("etudiant", new[]
             {
-                "notes.view", "programmation.view", "paiements.view", "dashboard.view"
+                "notes.view", "programmation.view", "paiements.view", "dashboard.view",
+                "PAIEMENT_EFFECTUER"
             }),
             
             ("directeur", new[]

@@ -6,49 +6,46 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Scolarité</title>
+    <title>@ViewData["Title"] - Espace Étudiant</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <!-- Barre de navigation principale de l'Area -->
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="Scolarite" asp-controller="Home" asp-action="Index">UnivSystem - Scolarité</a>
+                <a class="navbar-brand" asp-area="Student" asp-controller="Dashboard" asp-action="Index">UnivSystem - Étudiant</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <!-- GUARD RG-22 : Table de décision -->
-                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:DOSSIER_LIRE")).Succeeded)
+                        <!-- Lien Mon dossier (toujours visible) -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-area="Student" asp-controller="Dashboard" asp-action="Index">Mon dossier</a>
+                        </li>
+
+                        <!-- Lien Emploi du temps (visible si validé ou a des inscriptions antérieures) -->
+                        @if (ViewData["CanSeeEmploiDuTemps"] as bool? == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-area="Scolarite" asp-controller="Decision" asp-action="Index">Table de décision</a>
-                            </li>
-                        }
-                        
-                        <!-- GUARD RG-22 : Configuration académique (Dropdown) -->
-                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:CONFIG_ACADEMIQUE")).Succeeded)
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-white" href="#" id="configDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Configuration académique
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="configDropdown">
-    <li><a class="dropdown-item" asp-area="Scolarite" asp-controller="Academic" asp-action="Facultes">Gérer les facultés</a></li>
-    <li><a class="dropdown-item" asp-area="Scolarite" asp-controller="Academic" asp-action="Filieres">Gérer les filières</a></li>
-    <li><a class="dropdown-item" asp-area="Scolarite" asp-controller="Academic" asp-action="Ues">Gérer les UE</a></li>
-</ul>
+                                <a class="nav-link text-white" asp-area="Student" asp-controller="EmploiDuTemps" asp-action="Index">Emploi du temps</a>
                             </li>
                         }
 
-                        <!-- GUARD RG-22 : Liste des étudiants -->
-                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:ETUDIANTS_LISTER")).Succeeded)
+                        <!-- Lien Historique (visible si plusieurs inscriptions) -->
+                        @if (ViewData["HasHistorique"] as bool? == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-area="Scolarite" asp-controller="Students" asp-action="Index">Liste des étudiants</a>
+                                <a class="nav-link text-white" asp-area="Student" asp-controller="Historique" asp-action="Index">Historique</a>
+                            </li>
+                        }
+
+                        <!-- Lien Paiement (visible si validé et permission accordée) -->
+                        @if (ViewData["CanPay"] as bool? == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="Student" asp-controller="Payment" asp-action="Index">Paiement</a>
                             </li>
                         }
                     </ul>
@@ -60,14 +57,13 @@
 
     <div class="container">
         <main role="main" class="pb-3">
-            <!-- Le contenu des onglets sera injecté ici -->
             @RenderBody()
         </main>
     </div>
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - UnivSystem - Scolarité
+            &copy; 2026 - UnivSystem - Espace Étudiant
         </div>
     </footer>
 

@@ -1,0 +1,44 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Paiement";
+    var paiement = ViewBag.Paiement as UniversitySystem.Domain.Entities.Paiement;
+    var montant = (decimal)ViewBag.Montant;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Paiement des frais de scolarité</h4>
+            </div>
+            <div class="card-body text-center">
+                <p class="lead">Montant à payer : <strong>@montant.ToString("N0") FCFA</strong></p>
+                
+                @if (paiement != null && paiement.Statut == UniversitySystem.Domain.Enums.StatutPaiement.Valide)
+                {
+                    <!-- Paiement validé -->
+                    <div class="alert alert-success">Vous avez déjà payé ce montant.</div>
+                    <a href="/Student/Payment/Receipt/@paiement.IdPaiement" class="btn btn-primary w-100 mt-2">
+                        Télécharger mon reçu
+                    </a>
+                }
+                else if (paiement != null && paiement.Statut == UniversitySystem.Domain.Enums.StatutPaiement.EnAttente)
+                {
+                    <!-- Paiement en attente -->
+                    <div class="alert alert-warning">Un paiement est en cours de traitement.</div>
+                    <a href="/Student/Payment/FakeGateway?ref=@paiement.ReferenceTransaction" class="btn btn-warning w-100 mt-2">
+                        Simuler la confirmation du paiement (Dev)
+                    </a>
+                }
+                else
+                {
+                    <!-- Aucun paiement -->
+                    <form action="/Student/Payment/Initiate" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success btn-lg w-100">Payer maintenant</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
