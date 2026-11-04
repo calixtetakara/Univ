@@ -6,8 +6,7 @@ using UniversitySystem.Infrastructure.Persistence;
 namespace UniversitySystem.Infrastructure.Persistence.Seed;
 
 /// <summary>
-/// Seeder idempotent du Milestone 0, 2, 3 et 4.
-/// Insère les rôles, permissions, super-admin, paramètres et données de test.
+/// Seeder idempotent du Milestone 0 à 5.
 /// </summary>
 public static class DataSeeder
 {
@@ -29,9 +28,10 @@ public static class DataSeeder
         {
             new() { Code = "superadmin", Nom = "Super Administrateur", Description = "Accès total au système. Non supprimable.", EstSysteme = true, Ordre = 1 },
             new() { Code = "scolarite", Nom = "Scolarité", Description = "Gestion des étudiants, inscriptions, notes, documents.", EstSysteme = true, Ordre = 2 },
-            new() { Code = "enseignant", Nom = "Enseignant", Description = "Saisie des notes, consultation des programmations.", EstSysteme = true, Ordre = 3 },
-            new() { Code = "etudiant", Nom = "Étudiant", Description = "Consultation notes, emploi du temps, documents.", EstSysteme = true, Ordre = 4 },
-            new() { Code = "directeur", Nom = "Directeur de filière", Description = "Supervision d'une ou plusieurs filières.", EstSysteme = true, Ordre = 5 }
+            new() { Code = "pedagogie", Nom = "Pédagogie", Description = "Gestion des enseignants et du planning.", EstSysteme = true, Ordre = 3 },
+            new() { Code = "enseignant", Nom = "Enseignant", Description = "Saisie des notes, consultation des programmations.", EstSysteme = true, Ordre = 4 },
+            new() { Code = "etudiant", Nom = "Étudiant", Description = "Consultation notes, emploi du temps, documents.", EstSysteme = true, Ordre = 5 },
+            new() { Code = "directeur", Nom = "Directeur de filière", Description = "Supervision d'une ou plusieurs filières.", EstSysteme = true, Ordre = 6 }
         };
 
         await context.Roles.AddRangeAsync(roles);
@@ -70,7 +70,14 @@ public static class DataSeeder
             new() { Code = "ETUDIANTS_LISTER",   Nom = "Lister les étudiants",            Description = "Voir la liste globale des étudiants" },
 
             // Nouvelles permissions (M4)
-            new() { Code = "PAIEMENT_EFFECTUER", Nom = "Effectuer un paiement", Description = "Permet de payer les frais de scolarité" }
+            new() { Code = "PAIEMENT_EFFECTUER", Nom = "Effectuer un paiement", Description = "Permet de payer les frais de scolarité" },
+            new() { Code = "RECU_TELECHARGER", Nom = "Télécharger un reçu", Description = "Permet de télécharger les reçus de paiement" },
+
+            // Nouvelles permissions (M5)
+            new() { Code = "ENSEIGNANT_CREER", Nom = "Créer des enseignants", Description = "Gestion des comptes enseignants" },
+            new() { Code = "PROGRAMMATION_GERER", Nom = "Gérer le planning", Description = "Création et modification des cours" },
+            new() { Code = "PLANNING_CONSULTER_PERSO", Nom = "Consulter son planning", Description = "Voir ses cours (enseignant)" },
+            new() { Code = "ETUDIANTS_CLASSE_LIRE", Nom = "Lire les étudiants de sa classe", Description = "Voir les étudiants de ses filières" }
         };
 
         await context.Permissions.AddRangeAsync(permissions);
@@ -97,17 +104,21 @@ public static class DataSeeder
                 "paiements.manage", "paiements.view", "exports.generate", "dashboard.view",
                 "DOSSIER_LIRE", "DOSSIER_TRAITER", "CONFIG_ACADEMIQUE", "ETUDIANTS_LISTER"
             }),
+
+            // Pédagogie
+            ("pedagogie", new[] { "ENSEIGNANT_CREER", "PROGRAMMATION_GERER", "dashboard.view" }),
             
+            // Enseignant
             ("enseignant", new[]
             {
-                "notes.saisie", "notes.view", "programmation.view", "dashboard.view"
+                "notes.saisie", "notes.view", "programmation.view", "dashboard.view", "PLANNING_CONSULTER_PERSO"
             }),
             
-            // Étudiant (avec la nouvelle permission)
+            // Étudiant
             ("etudiant", new[]
             {
                 "notes.view", "programmation.view", "paiements.view", "dashboard.view",
-                "PAIEMENT_EFFECTUER"
+                "PAIEMENT_EFFECTUER", "RECU_TELECHARGER"
             }),
             
             ("directeur", new[]

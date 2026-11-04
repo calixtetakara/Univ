@@ -1,0 +1,44 @@
+@model IEnumerable<UniversitySystem.Domain.Entities.Enseignant>
+
+@{
+    ViewData["Title"] = "Enseignants";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Gestion des enseignants</h2>
+    <a asp-action="Create" class="btn btn-primary">Nouvel enseignant</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["TempPassword"] != null)
+{
+    <div class="alert alert-info">
+        <strong>Mot de passe temporaire :</strong> <code>@TempData["TempPassword"]</code><br />
+        <small class="text-muted">Il ne sera plus affiché.</small>
+    </div>
+}
+
+<table class="table table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Nom complet</th>
+            <th>Email</th>
+            <th>Spécialité</th>
+            <th>Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var e in Model)
+        {
+            <tr>
+                <td>@e.Utilisateur.Nom @e.Utilisateur.Prenom</td>
+                <td>@e.Utilisateur.Email</td>
+                <td>@e.Specialite</td>
+                <td>@e.Statut</td>
+            </tr>
+        }
+    </tbody>
+</table>
