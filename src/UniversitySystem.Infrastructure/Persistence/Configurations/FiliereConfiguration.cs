@@ -12,38 +12,30 @@ public class FiliereConfiguration : IEntityTypeConfiguration<Filiere>
     public void Configure(EntityTypeBuilder<Filiere> b)
     {
         b.ToTable("filieres");
-
         b.HasKey(f => f.IdFiliere);
 
         b.Property(f => f.IdFiliere)
             .HasColumnName("id_filiere")
             .ValueGeneratedOnAdd();
 
-        b.Property(f => f.Code)
-            .HasColumnName("code")
+        b.Property(f => f.CodeFiliere)
+            .HasColumnName("code_filiere")
             .HasMaxLength(20)
             .IsRequired();
 
-        b.HasIndex(f => f.Code).IsUnique();
+        b.HasIndex(f => f.CodeFiliere).IsUnique();
 
-        b.Property(f => f.Nom)
-            .HasColumnName("nom")
+        b.Property(f => f.NomFiliere)
+            .HasColumnName("nom_filiere")
             .HasMaxLength(150)
             .IsRequired();
-
-        b.Property(f => f.Description)
-            .HasColumnName("description")
-            .HasMaxLength(500);
 
         b.Property(f => f.IdFaculte)
             .HasColumnName("id_faculte");
 
-        b.Property(f => f.Actif)
-            .HasColumnName("actif")
-            .HasDefaultValue(true);
-
+        // Relation vers Faculte
         b.HasOne(f => f.Faculte)
-            .WithMany(fa => fa.Filieres)
+            .WithMany(fac => fac.Filieres)
             .HasForeignKey(f => f.IdFaculte)
             .OnDelete(DeleteBehavior.Restrict);
     }

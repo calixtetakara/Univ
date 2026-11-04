@@ -1,0 +1,189 @@
+@model UniversitySystem.Web.Models.Step2ParcoursViewModel
+@using UniversitySystem.Domain.Entities
+@{
+    ViewData["Title"] = "Inscription - Parcours";
+    // On récupère les facultés passées par le ViewBag (chargées par le contrôleur)
+    var facultes = ViewBag.Facultes as List<Faculte> ?? new List<Faculte>();
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Bachelier - Parcours & Notes</h2>
+
+    <!-- Indicateur d'étapes (Stepper) -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="text-success me-3">1. Identité ✔</div>
+        <div class="text-primary fw-bold me-3">2. Parcours & Notes</div>
+        <div class="text-muted">3. Pièces Jointes</div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Step2" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <!-- Affichage des erreurs globales -->
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- LIGNE 1 : Niveau + Faculté + Filière -->
+                        <div class="row mb-3">
+                            <!-- Choix du Niveau -->
+                            <div class="col-md-4">
+                                <label asp-for="Niveau" class="form-label fw-bold"></label>
+                                <select asp-for="Niveau" class="form-select">
+                                    <option value="Licence">Licence</option>
+                                    <option value="Master">Master</option>
+                                </select>
+                                <span asp-validation-for="Niveau" class="text-danger"></span>
+                            </div>
+
+                            <!-- Choix de la Faculté (déclenche l'AJAX) -->
+                            <div class="col-md-4">
+                                <label asp-for="CodeFaculte" class="form-label fw-bold"></label>
+                                <select asp-for="CodeFaculte" class="form-select" id="faculteSelect">
+                                    <option value="">-- Choisir une faculté --</option>
+                                    @foreach (var f in facultes)
+                                    {
+                                        <option value="@f.CodeFaculte">@f.NomFaculte</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CodeFaculte" class="text-danger"></span>
+                            </div>
+
+                            <!-- Choix de la Filière (rempli par JS) -->
+                            <div class="col-md-4">
+                                <label asp-for="CodeFiliere" class="form-label fw-bold"></label>
+                                <select asp-for="CodeFiliere" class="form-select" id="filiereSelect">
+                                    <option value="">-- Choisir une faculté d'abord --</option>
+                                </select>
+                                <span asp-validation-for="CodeFiliere" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- SECTION DES NOTES (cachée par défaut) -->
+                        <div id="notesSection" style="display: none;">
+                            <hr />
+                            <h5 class="mb-3">Notes du BAC</h5>
+                            
+                            <!-- Bloc Scientifique -->
+                            <div id="notesScientifiques" style="display: none;" class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="NoteMaths" class="form-label"></label>
+                                    <input asp-for="NoteMaths" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteMaths" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="NoteSvt" class="form-label"></label>
+                                    <input asp-for="NoteSvt" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteSvt" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="NotePhysique" class="form-label"></label>
+                                    <input asp-for="NotePhysique" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
+                                    <span asp-validation-for="NotePhysique" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Bloc Littéraire -->
+                            <div id="notesLitteraires" style="display: none;" class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="NoteFrancais" class="form-label"></label>
+                                    <input asp-for="NoteFrancais" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteFrancais" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="NoteHistoireGeo" class="form-label"></label>
+                                    <input asp-for="NoteHistoireGeo" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteHistoireGeo" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="NotePhilo" class="form-label"></label>
+                                    <input asp-for="NotePhilo" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
+                                    <span asp-validation-for="NotePhilo" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="NoteAnglais" class="form-label"></label>
+                                    <input asp-for="NoteAnglais" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteAnglais" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOUTONS -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" formaction="@Url.Action("Back", new { currentStep = "Step2" })" class="btn btn-outline-secondary">
+                                ← Retour
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Suivant →
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var faculteSelect = document.getElementById('faculteSelect');
+            var filiereSelect = document.getElementById('filiereSelect');
+            var notesSection = document.getElementById('notesSection');
+            var notesSci = document.getElementById('notesScientifiques');
+            var notesLit = document.getElementById('notesLitteraires');
+
+            // Fonction pour charger les filières via AJAX
+            function loadFilieres(codeFaculte) {
+                if (!codeFaculte) {
+                    filiereSelect.innerHTML = '<option value="">-- Choisir une faculté d\'abord --</option>';
+                    notesSection.style.display = 'none';
+                    return;
+                }
+
+                filiereSelect.innerHTML = '<option value="">Chargement...</option>';
+
+                fetch('/Registration/GetFilieres?codeFaculte=' + encodeURIComponent(codeFaculte))
+                    .then(response => {
+                        if (!response.ok) throw new Error("Erreur de chargement");
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Remplissage des filières
+                        filiereSelect.innerHTML = '<option value="">-- Choisir une filière --</option>';
+                        data.filieres.forEach(f => {
+                            filiereSelect.innerHTML += `<option value="${f.codeFiliere}">${f.nomFiliere}</option>`;
+                        });
+
+                        // Affichage des champs de notes selon le type
+                        notesSection.style.display = 'block';
+                        if (data.typeFaculte === 'Scientifique') {
+                            notesSci.style.display = 'flex';
+                            notesLit.style.display = 'none';
+                        } else {
+                            notesSci.style.display = 'none';
+                            notesLit.style.display = 'flex';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        filiereSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                    });
+            }
+
+            // Événement quand on change de faculté
+            faculteSelect.addEventListener('change', function () {
+                loadFilieres(this.value);
+            });
+
+            // Si on revient en arrière et qu'une faculté est déjà sélectionnée
+            if (faculteSelect.value) {
+                loadFilieres(faculteSelect.value);
+            }
+        });
+    </script>
+}

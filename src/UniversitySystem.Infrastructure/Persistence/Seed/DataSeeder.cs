@@ -6,9 +6,8 @@ using UniversitySystem.Infrastructure.Persistence;
 namespace UniversitySystem.Infrastructure.Persistence.Seed;
 
 /// <summary>
-/// Seeder idempotent du Milestone 0 (M0-09).
-/// Insère les 5 rôles système, les 17 permissions, la matrice RBAC
-/// et le compte Super-Admin initial.
+/// Seeder idempotent du Milestone 0 et 2.
+/// Insère les rôles, permissions, super-admin, paramètres et données de test.
 /// </summary>
 public static class DataSeeder
 {
@@ -28,6 +27,9 @@ public static class DataSeeder
 
         // 5. Paramètres calendrier
         await SeedParametresCalendrierAsync(context);
+
+        // 6. Facultés et Filières (pour tester l'étape 2)
+        await SeedFacultesEtFilieresAsync(context);
     }
 
     private static async Task SeedRolesAsync(AppDbContext context)
@@ -142,7 +144,7 @@ public static class DataSeeder
             Nom = "Administrateur",
             Prenom = "Super",
             Statut = StatutUtilisateur.Actif,
-            DoitChangerMotDePasse = true, // L'admin devra changer le mot de passe à la 1ère connexion
+            DoitChangerMotDePasse = true,
             DateCreation = DateTime.UtcNow,
             IdRole = superAdminRole.IdRole
         };
@@ -156,7 +158,6 @@ public static class DataSeeder
         var anneeCourante = DateTime.UtcNow.Year;
         var anneeAcademique = $"{anneeCourante}-{anneeCourante + 1}";
 
-        // On vérifie si les paramètres pour cette année existent déjà (idempotence)
         if (await context.ParametresCalendrier.AnyAsync(p => p.AnneeAcademique == anneeAcademique)) 
             return;
 
@@ -170,6 +171,37 @@ public static class DataSeeder
         };
 
         await context.ParametresCalendrier.AddRangeAsync(parametres);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedFacultesEtFilieresAsync(AppDbContext context)
+    {
+        if (await context.Facultes.AnyAsync()) return;
+
+        var fds = new Faculte
+        {
+            CodeFaculte = "FDS",
+            NomFaculte = "Faculté des Sciences",
+            TypeFaculte = TypeFaculte.Scientifique
+        };
+        
+        var faseg = new Faculte
+        {
+            CodeFaculte = "FASEG",
+            NomFaculte = "Faculté des Sciences Économiques et de Gestion",
+            TypeFaculte = TypeFaculte.Litteraire
+        };
+
+        // On sauvegarde d'abord pour récupérer les IdFaculte générés
+        context.Facultes.AddRange(fds, faseg);
+        await context.SaveChangesAsync();
+
+        // Maintenant on peut créer les filières avec IdFaculte
+        context.Filieres.AddRange(
+            new Filiere { CodeFiliere = "LIC-INFO", NomFiliere = "Licence Informatique", IdFaculte = fds.IdFaculte },
+            new Filiere { CodeFiliere = "LIC-MATH", NomFiliere = "Licence Mathématiques", IdFaculte = fds.IdFaculte },
+            new Filiere { CodeFiliere = "LIC-GEST", NomFiliere = "Licence Gestion", IdFaculte = faseg.IdFaculte }
+        );
         await context.SaveChangesAsync();
     }
 }

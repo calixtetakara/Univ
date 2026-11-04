@@ -1,0 +1,121 @@
+@using UniversitySystem.Domain.Enums
+@model UniversitySystem.Web.Models.Step1IdentiteViewModel
+
+@{
+    ViewData["Title"] = "Inscription - Identité";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Bachelier - Identification</h2>
+
+    <!-- Stepper (indicateur d'étapes) -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="text-primary fw-bold me-3">1. Identité</div>
+        <div class="text-muted me-3">→ 2. Parcours & Notes</div>
+        <div class="text-muted">→ 3. Pièces jointes</div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Step1" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Ligne 1 : Numéro de table + Session -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="NumTableBac" class="form-label"></label>
+                                <input asp-for="NumTableBac" class="form-control" />
+                                <span asp-validation-for="NumTableBac" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SessionBac" class="form-label"></label>
+                                <select asp-for="SessionBac" class="form-select">
+                                    @for (int i = DateTime.UtcNow.Year; i >= 2010; i--)
+                                    {
+                                        <option value="@i">@i</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SessionBac" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Ligne 2 : Nom + Prénom -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Nom" class="form-label"></label>
+                                <input asp-for="Nom" class="form-control" />
+                                <span asp-validation-for="Nom" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Prenom" class="form-label"></label>
+                                <input asp-for="Prenom" class="form-control" />
+                                <span asp-validation-for="Prenom" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Ligne 3 : Genre + Date Naissance + Lieu -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Genre" class="form-label"></label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" asp-for="Genre" value="@((int)Genre.Masculin)" id="genreM" />
+                                        <label class="form-check-label" for="genreM">Masculin</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" asp-for="Genre" value="@((int)Genre.Feminin)" id="genreF" />
+                                        <label class="form-check-label" for="genreF">Féminin</label>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Genre" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="DateNaissance" class="form-label"></label>
+                                <input asp-for="DateNaissance" type="date" class="form-control" />
+                                <span asp-validation-for="DateNaissance" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="LieuNaissance" class="form-label"></label>
+                                <input asp-for="LieuNaissance" class="form-control" />
+                                <span asp-validation-for="LieuNaissance" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Ligne 4 : Email -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="nom@exemple.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <!-- Ligne 5 : Mots de passe -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MotDePasse" class="form-label"></label>
+                                <input asp-for="MotDePasse" type="password" class="form-control" />
+                                <span asp-validation-for="MotDePasse" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ConfirmMotDePasse" class="form-label"></label>
+                                <input asp-for="ConfirmMotDePasse" type="password" class="form-control" />
+                                <span asp-validation-for="ConfirmMotDePasse" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Bouton de soumission -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Suivant →</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

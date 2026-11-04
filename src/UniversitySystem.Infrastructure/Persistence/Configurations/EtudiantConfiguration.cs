@@ -24,8 +24,8 @@ public class EtudiantConfiguration : IEntityTypeConfiguration<Etudiant>
 
         b.Property(e => e.Matricule)
             .HasColumnName("matricule")
-            .HasMaxLength(30)
-            .IsRequired();
+            .HasMaxLength(50)
+            .IsRequired(false);
 
         b.HasIndex(e => e.Matricule).IsUnique();
 

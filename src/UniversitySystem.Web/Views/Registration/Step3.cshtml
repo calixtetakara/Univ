@@ -1,0 +1,50 @@
+@model UniversitySystem.Web.Models.Step3DocumentsViewModel
+
+@{
+    ViewData["Title"] = "Inscription - Documents";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Bachelier - Pièces Jointes</h2>
+
+    <!-- Indicateur d'étapes -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="text-success me-3">1. Identité ✔</div>
+        <div class="text-success me-3">2. Parcours ✔</div>
+        <div class="text-primary fw-bold">3. Pièces Jointes</div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <!-- enctype="multipart/form-data" est INDISPENSABLE pour l'upload -->
+                    <form asp-action="Step3" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Champ Relevé de notes -->
+                        <div class="mb-3">
+                            <label asp-for="ReleveBac" class="form-label"></label>
+                            <input asp-for="ReleveBac" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                            <span asp-validation-for="ReleveBac" class="text-danger"></span>
+                            <small class="text-muted">Format PDF, JPG ou PNG. Taille max : 2 Mo.</small>
+                        </div>
+
+                        <!-- Champ Acte de naissance -->
+                        <div class="mb-3">
+                            <label asp-for="ActeNaissance" class="form-label"></label>
+                            <input asp-for="ActeNaissance" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                            <span asp-validation-for="ActeNaissance" class="text-danger"></span>
+                        </div>
+
+                        <!-- Bouton de soumission -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">Soumettre mon dossier</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

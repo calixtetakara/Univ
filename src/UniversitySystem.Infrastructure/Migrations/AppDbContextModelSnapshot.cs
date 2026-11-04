@@ -298,15 +298,27 @@ namespace UniversitySystem.Infrastructure.Migrations
                         .HasColumnName("lieu_naissance");
 
                     b.Property<string>("Matricule")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("matricule");
+
+                    b.Property<string>("MotifRejet")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nationalite")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)")
                         .HasColumnName("nationalite");
+
+                    b.Property<string>("NumTableBac")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("SessionBac")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StatutDossier")
+                        .HasColumnType("int");
 
                     b.HasKey("IdEtudiant");
 
@@ -391,26 +403,30 @@ namespace UniversitySystem.Infrastructure.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("actif");
 
-                    b.Property<string>("Code")
+                    b.Property<string>("CodeFaculte")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)")
-                        .HasColumnName("code");
+                        .HasColumnName("code_faculte");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)")
                         .HasColumnName("description");
 
-                    b.Property<string>("Nom")
+                    b.Property<string>("NomFaculte")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("varchar(150)")
-                        .HasColumnName("nom");
+                        .HasColumnName("nom_faculte");
+
+                    b.Property<int>("TypeFaculte")
+                        .HasColumnType("int")
+                        .HasColumnName("type_faculte");
 
                     b.HasKey("IdFaculte");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("CodeFaculte")
                         .IsUnique();
 
                     b.ToTable("facultes", (string)null);
@@ -425,36 +441,25 @@ namespace UniversitySystem.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdFiliere"));
 
-                    b.Property<bool>("Actif")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true)
-                        .HasColumnName("actif");
-
-                    b.Property<string>("Code")
+                    b.Property<string>("CodeFiliere")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)")
-                        .HasColumnName("code");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("description");
+                        .HasColumnName("code_filiere");
 
                     b.Property<int>("IdFaculte")
                         .HasColumnType("int")
                         .HasColumnName("id_faculte");
 
-                    b.Property<string>("Nom")
+                    b.Property<string>("NomFiliere")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("varchar(150)")
-                        .HasColumnName("nom");
+                        .HasColumnName("nom_filiere");
 
                     b.HasKey("IdFiliere");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("CodeFiliere")
                         .IsUnique();
 
                     b.HasIndex("IdFaculte");
@@ -489,9 +494,14 @@ namespace UniversitySystem.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("semestre");
 
+                    b.Property<int?>("UeIdUe")
+                        .HasColumnType("int");
+
                     b.HasKey("IdFiliereUe");
 
                     b.HasIndex("IdUe");
+
+                    b.HasIndex("UeIdUe");
 
                     b.HasIndex("IdFiliere", "IdUe", "Semestre")
                         .IsUnique();
@@ -1127,10 +1137,14 @@ namespace UniversitySystem.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("UniversitySystem.Domain.Entities.Ue", "Ue")
-                        .WithMany("FiliereUes")
+                        .WithMany()
                         .HasForeignKey("IdUe")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("UniversitySystem.Domain.Entities.Ue", null)
+                        .WithMany("FiliereUes")
+                        .HasForeignKey("UeIdUe");
 
                     b.Navigation("Filiere");
 

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using UniversitySystem.Infrastructure.Persistence;
 using UniversitySystem.Infrastructure.Persistence.Seed;
 using UniversitySystem.Infrastructure.Services;
-using UniversitySystem.Web.Authorization;
+using UniversitySystem.Web.Authorization; // INDISPENSABLE pour PermissionPolicyProvider
 using UniversitySystem.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +19,6 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    // Utilisation de ServerVersion.AutoDetect (compatible .NET 10)
     var serverVersion = ServerVersion.AutoDetect(connectionString);
     options.UseMySql(connectionString, serverVersion);
 });
@@ -30,7 +29,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllersWithViews();
 
 // ============================================================
-// 3. Authentification Cookie
+// 3. Session (Stockage de l'état du wizard)
+// ============================================================
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+});
+builder.Services.AddHttpContextAccessor();
+
+// ============================================================
+// 4. Authentification Cookie
 // ============================================================
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -47,7 +59,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 // ============================================================
-// 4. Autorisation — FallbackPolicy
+// 5. Autorisation — FallbackPolicy
 // ============================================================
 builder.Services.AddAuthorization(options =>
 {
@@ -57,23 +69,26 @@ builder.Services.AddAuthorization(options =>
 });
 
 // ============================================================
-// 5. Services applicatifs (Auth + Permissions)
+// 6. Services applicatifs
 // ============================================================
 builder.Services.AddMemoryCache();
-
-// Ajout pour le Wizard d'inscription (M2-01)
 builder.Services.AddDataProtection();
-builder.Services.AddScoped<IRegistrationStateStore, TempDataRegistrationStateStore>();
 
+// Service de stockage de l'état (Session)
+builder.Services.AddScoped<IRegistrationStateStore, SessionRegistrationStateStore>();
+
+// Services métier
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IEligibilityService, EligibilityService>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 
-// Autorisation dynamique par permission
+// Autorisation dynamique par permission (nécessite le using UniversitySystem.Web.Authorization)
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 // ============================================================
-// 6. Hangfire (InMemory)
+// 7. Hangfire (InMemory)
 // ============================================================
 builder.Services.AddHangfire(config =>
 {
@@ -82,7 +97,6 @@ builder.Services.AddHangfire(config =>
     config.UseSimpleAssemblyNameTypeSerializer();
     config.UseRecommendedSerializerSettings();
 });
-
 builder.Services.AddHangfireServer();
 
 // ============================================================
@@ -103,18 +117,18 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+// Activation de la Session (indispensable pour le wizard)
+app.UseSession();
+
 app.UseAuthentication();
-
-// Application de la règle RG-04 (enseignant avec mot de passe temporaire)
-app.UseMiddleware<UniversitySystem.Web.Middleware.TeacherPasswordSetupMiddleware>(); 
-
+app.UseMiddleware<TeacherPasswordSetupMiddleware>(); 
 app.UseAuthorization();
 
 // Dashboard Hangfire
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
     Authorization = new[] { new UniversitySystem.Web.Infrastructure.HangfireAuthorizationFilter() },
-    DashboardTitle = "UnivSystem - Jobs"
+    DashboardTitle = "UnivSys - Jobs"
 });
 
 // ============================================================
@@ -123,11 +137,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    
-    // Application des migrations (uniquement si nécessaire)
     await db.Database.MigrateAsync();
-    
-    // Lancement du seeder (idempotent)
     await DataSeeder.SeedAsync(db);
 }
 

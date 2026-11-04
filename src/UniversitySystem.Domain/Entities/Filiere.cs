@@ -1,31 +1,20 @@
+using System.Collections.Generic;
+
 namespace UniversitySystem.Domain.Entities;
 
 /// <summary>
-/// Filière (spécialité) rattachée à une faculté.
+/// Filière de l'université rattachée à une faculté.
 /// </summary>
 public class Filiere
 {
-    /// <summary>Identifiant technique (PK).</summary>
     public int IdFiliere { get; set; }
+    public string CodeFiliere { get; set; } = default!;
+    public string NomFiliere { get; set; } = default!;
 
-    /// <summary>Code unique de la filière (ex: "INFO", "GEST").</summary>
-    public string Code { get; set; } = default!;
-
-    /// <summary>Nom de la filière.</summary>
-    public string Nom { get; set; } = default!;
-
-    /// <summary>Description optionnelle.</summary>
-    public string? Description { get; set; }
-
-    /// <summary>Faculté de rattachement.</summary>
+    // Clé étrangère vers Faculte (int)
     public int IdFaculte { get; set; }
-
-    /// <summary>Indique si la filière est active.</summary>
-    public bool Actif { get; set; } = true;
-
-    /// <summary>Navigation vers la faculté.</summary>
     public Faculte Faculte { get; set; } = default!;
 
-    /// <summary>Unités d'enseignement de la filière.</summary>
+    // Navigation
     public ICollection<FiliereUe> FiliereUes { get; set; } = new List<FiliereUe>();
 }

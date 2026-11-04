@@ -3,6 +3,10 @@ using Microsoft.Extensions.Options;
 
 namespace UniversitySystem.Web.Authorization;
 
+/// <summary>
+/// Fournisseur de politiques d'autorisation dynamique.
+/// Permet de créer une politique à la volée pour tout nom commençant par "Permission:".
+/// </summary>
 public class PermissionPolicyProvider : IAuthorizationPolicyProvider
 {
     private const string PolicyPrefix = "Permission:";

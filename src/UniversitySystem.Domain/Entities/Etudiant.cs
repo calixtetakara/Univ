@@ -13,8 +13,14 @@ public class Etudiant
     /// <summary>Compte utilisateur associé.</summary>
     public int IdUtilisateur { get; set; }
 
-    /// <summary>Matricule unique de l'étudiant (ex: 2026INFO0001).</summary>
-    public string Matricule { get; set; } = default!;
+    /// <summary>Matricule unique de l'étudiant (ex: 2026INFO0001), null tant que non validé.</summary>
+    public string? Matricule { get; set; }
+
+    /// <summary>Numéro de table du baccalauréat (obligatoire, RG-01).</summary>
+    public string NumTableBac { get; set; } = default!;
+
+    /// <summary>Année de session du baccalauréat (ex: 2024).</summary>
+    public int SessionBac { get; set; }
 
     /// <summary>Date de naissance.</summary>
     public DateTime DateNaissance { get; set; }
@@ -33,6 +39,15 @@ public class Etudiant
 
     /// <summary>Filière d'inscription principale.</summary>
     public int? IdFiliere { get; set; }
+
+    /// <summary>
+    /// Statut du dossier d'inscription.
+    /// Utilise l'enum StatutInscription existant.
+    /// </summary>
+    public StatutInscription StatutDossier { get; set; } = StatutInscription.Brouillon;
+
+    /// <summary>Motif de rejet si le dossier est rejeté (RG-09).</summary>
+    public string? MotifRejet { get; set; }
 
     /// <summary>Date de création du profil.</summary>
     public DateTime DateCreation { get; set; }
