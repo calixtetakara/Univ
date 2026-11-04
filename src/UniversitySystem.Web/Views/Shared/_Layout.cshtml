@@ -1,55 +1,51 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Système de Gestion Universitaire</title>
+    <title>@ViewData["Title"] - Scolarité</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                    UnivSystem
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+        <!-- Barre de navigation principale de l'Area -->
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="Scolarite" asp-controller="Home" asp-action="Index">UnivSystem - Scolarité</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="mainNavbar">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Accueil</a>
-                        </li>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <!-- GUARD RG-22 : Table de décision -->
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:DOSSIER_LIRE")).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="Scolarite" asp-controller="Decision" asp-action="Index">Table de décision</a>
+                            </li>
+                        }
+                        
+                        <!-- GUARD RG-22 : Configuration académique -->
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:CONFIG_ACADEMIQUE")).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="Scolarite" asp-controller="Academic" asp-action="Index">Configuration académique</a>
+                            </li>
+                        }
+
+                        <!-- GUARD RG-22 : Liste des étudiants -->
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:ETUDIANTS_LISTER")).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="Scolarite" asp-controller="Students" asp-action="Index">Liste des étudiants</a>
+                            </li>
+                        }
                     </ul>
-                    <ul class="navbar-nav">
-                 @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <li class="nav-item">
-                            <span class="nav-link text-light">
-                                @User.FindFirst("FullName")?.Value
-                                <small class="text-muted">(@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</small>
-                            </span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Account" asp-action="ChangePassword">Mot de passe</a>
-                        </li>
-                        <li class="nav-item">
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-link nav-link">Déconnexion</button>
-                            </form>
-                        </li>
-                    }
-                    else
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Account" asp-action="Login">Connexion</a>
-                        </li>
-                    }
-                                            
-                    </ul>
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
@@ -57,13 +53,14 @@
 
     <div class="container">
         <main role="main" class="pb-3">
+            <!-- Le contenu des onglets sera injecté ici -->
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-4">
-        <div class="container text-center py-3">
-            &copy; @DateTime.Now.Year - Système de Gestion Universitaire
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2026 - UnivSystem - Scolarité
         </div>
     </footer>
 

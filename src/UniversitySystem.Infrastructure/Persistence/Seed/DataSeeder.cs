@@ -6,7 +6,7 @@ using UniversitySystem.Infrastructure.Persistence;
 namespace UniversitySystem.Infrastructure.Persistence.Seed;
 
 /// <summary>
-/// Seeder idempotent du Milestone 0 et 2.
+/// Seeder idempotent du Milestone 0, 2 et 3.
 /// Insère les rôles, permissions, super-admin, paramètres et données de test.
 /// </summary>
 public static class DataSeeder
@@ -16,7 +16,7 @@ public static class DataSeeder
         // 1. Rôles système (5)
         await SeedRolesAsync(context);
 
-        // 2. Permissions (17)
+        // 2. Permissions (21)
         await SeedPermissionsAsync(context);
 
         // 3. Matrice RolePermission
@@ -55,6 +55,7 @@ public static class DataSeeder
 
         var permissions = new List<Permission>
         {
+            // Anciennes permissions
             new() { Code = "users.manage",       Nom = "Gérer les utilisateurs",          Description = "CRUD utilisateurs + attribution rôles" },
             new() { Code = "roles.manage",       Nom = "Gérer les rôles",                 Description = "CRUD rôles et matrice permissions" },
             new() { Code = "permissions.view",   Nom = "Voir les permissions",            Description = "Consultation seule des permissions" },
@@ -71,7 +72,13 @@ public static class DataSeeder
             new() { Code = "exports.generate",   Nom = "Générer des exports",             Description = "PDF, Excel, CSV" },
             new() { Code = "audit.view",         Nom = "Consulter l'audit",                Description = "Consultation des logs d'audit" },
             new() { Code = "settings.manage",    Nom = "Gérer les paramètres",            Description = "Calendrier académique, paramètres globaux" },
-            new() { Code = "dashboard.view",     Nom = "Voir le tableau de bord",         Description = "Accès au dashboard selon le rôle" }
+            new() { Code = "dashboard.view",     Nom = "Voir le tableau de bord",         Description = "Accès au dashboard selon le rôle" },
+            
+            // Nouvelles permissions (M3)
+            new() { Code = "DOSSIER_LIRE",       Nom = "Voir les dossiers",               Description = "Consulter la table de décision" },
+            new() { Code = "DOSSIER_TRAITER",    Nom = "Traiter les dossiers",            Description = "Approuver ou rejeter un dossier" },
+            new() { Code = "CONFIG_ACADEMIQUE",  Nom = "Configurer l'académique",         Description = "Gérer les facultés, filières et UE" },
+            new() { Code = "ETUDIANTS_LISTER",   Nom = "Lister les étudiants",            Description = "Voir la liste globale des étudiants" }
         };
 
         await context.Permissions.AddRangeAsync(permissions);
@@ -87,21 +94,29 @@ public static class DataSeeder
 
         var matrix = new List<(string RoleCode, string[] PermissionCodes)>
         {
+            // SuperAdmin a TOUTES les permissions (y compris les nouvelles)
             ("superadmin", perms.Keys.ToArray()),
+            
+            // Scolarité (Mise à jour avec les permissions M3)
             ("scolarite", new[]
             {
                 "students.manage", "inscriptions.manage", "documents.manage",
                 "notes.view", "notes.validation", "programmation.view",
-                "paiements.manage", "paiements.view", "exports.generate", "dashboard.view"
+                "paiements.manage", "paiements.view", "exports.generate", "dashboard.view",
+                // Nouvelles permissions M3
+                "DOSSIER_LIRE", "DOSSIER_TRAITER", "CONFIG_ACADEMIQUE", "ETUDIANTS_LISTER"
             }),
+            
             ("enseignant", new[]
             {
                 "notes.saisie", "notes.view", "programmation.view", "dashboard.view"
             }),
+            
             ("etudiant", new[]
             {
                 "notes.view", "programmation.view", "paiements.view", "dashboard.view"
             }),
+            
             ("directeur", new[]
             {
                 "students.manage", "inscriptions.manage", "notes.view", "notes.validation",
@@ -192,11 +207,9 @@ public static class DataSeeder
             TypeFaculte = TypeFaculte.Litteraire
         };
 
-        // On sauvegarde d'abord pour récupérer les IdFaculte générés
         context.Facultes.AddRange(fds, faseg);
         await context.SaveChangesAsync();
 
-        // Maintenant on peut créer les filières avec IdFaculte
         context.Filieres.AddRange(
             new Filiere { CodeFiliere = "LIC-INFO", NomFiliere = "Licence Informatique", IdFaculte = fds.IdFaculte },
             new Filiere { CodeFiliere = "LIC-MATH", NomFiliere = "Licence Mathématiques", IdFaculte = fds.IdFaculte },
