@@ -61,6 +61,10 @@ builder.Services.AddAuthorization(options =>
 // ============================================================
 builder.Services.AddMemoryCache();
 
+// Ajout pour le Wizard d'inscription (M2-01)
+builder.Services.AddDataProtection();
+builder.Services.AddScoped<IRegistrationStateStore, TempDataRegistrationStateStore>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 
