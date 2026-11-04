@@ -1,0 +1,50 @@
+@model IEnumerable<UniversitySystem.Domain.Entities.Filiere>
+
+@{
+    ViewData["Title"] = "Filières";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Gestion des Filières</h2>
+    <div>
+        <a asp-action="Facultes" class="btn btn-outline-secondary">Retour aux facultés</a>
+        <a asp-action="CreateFiliere" class="btn btn-primary">Nouvelle filière</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Faculté</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var f in Model)
+        {
+            <tr>
+                <td><strong>@f.CodeFiliere</strong></td>
+                <td>@f.NomFiliere</td>
+                <td>@f.Faculte?.NomFaculte</td>
+                <td>
+                    <a asp-action="EditFiliere" asp-route-id="@f.CodeFiliere" class="btn btn-sm btn-warning">Modifier</a>
+                    <form asp-action="DeleteFiliere" asp-route-id="@f.CodeFiliere" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr ?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

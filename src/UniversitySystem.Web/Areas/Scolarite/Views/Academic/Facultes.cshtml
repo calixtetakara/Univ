@@ -1,0 +1,47 @@
+@model IEnumerable<UniversitySystem.Domain.Entities.Faculte>
+
+@{
+    ViewData["Title"] = "Facultés";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Configuration des Facultés</h2>
+    <a asp-action="CreateFaculte" class="btn btn-primary">Nouvelle faculté</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Code</th>
+            <th>Nom</th>
+            <th>Type</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var f in Model)
+        {
+            <tr>
+                <td><strong>@f.CodeFaculte</strong></td>
+                <td>@f.NomFaculte</td>
+                <td>@f.TypeFaculte</td>
+                <td>
+                    <a asp-action="EditFaculte" asp-route-id="@f.CodeFaculte" class="btn btn-sm btn-warning">Modifier</a>
+                    <form asp-action="DeleteFaculte" asp-route-id="@f.CodeFaculte" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr ?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,44 @@
+@model UniversitySystem.Web.Models.FaculteEditViewModel
+
+@{
+    ViewData["Title"] = "Nouvelle faculté";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Créer une faculté</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateFaculte" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="CodeFaculte" class="form-label"></label>
+                        <input asp-for="CodeFaculte" class="form-control" placeholder="Ex: FDS" />
+                        <span asp-validation-for="CodeFaculte" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NomFaculte" class="form-label"></label>
+                        <input asp-for="NomFaculte" class="form-control" />
+                        <span asp-validation-for="NomFaculte" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TypeFaculte" class="form-label"></label>
+                        <select asp-for="TypeFaculte" asp-items="Html.GetEnumSelectList<UniversitySystem.Domain.Enums.TypeFaculte>()" class="form-select"></select>
+                        <span asp-validation-for="TypeFaculte" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Créer</button>
+                        <a asp-action="Facultes" class="btn btn-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

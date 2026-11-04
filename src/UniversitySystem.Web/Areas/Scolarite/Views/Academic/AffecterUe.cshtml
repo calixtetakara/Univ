@@ -1,0 +1,60 @@
+@model UniversitySystem.Web.Models.FiliereUeAffectationViewModel
+
+@{
+    ViewData["Title"] = $"Affecter des UE - {Model.NomFiliere}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Affecter des UE à : @Model.NomFiliere</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="AffecterUe" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="CodeFiliere" />
+
+                    @if (!Model.AvailableUes.Any())
+                    {
+                        <p class="text-muted">Aucune UE disponible. Créez d'abord des UE.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">Sélection</th>
+                                        <th>Code</th>
+                                        <th>Intitulé</th>
+                                        <th>Crédits</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.AvailableUes.Count; i++)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <input type="checkbox" name="AvailableUes[@i].IsChecked" value="true" @(Model.AvailableUes[i].IsChecked ? "checked" : "") />
+                                                <input type="hidden" name="AvailableUes[@i].Code" value="@Model.AvailableUes[i].Code" />
+                                            </td>
+                                            <td>@Model.AvailableUes[i].Code</td>
+                                            <td>@Model.AvailableUes[i].Intitule</td>
+                                            <td>@Model.AvailableUes[i].Credits</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-success">Enregistrer les affectations</button>
+                        <a asp-action="Filieres" class="btn btn-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

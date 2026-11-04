@@ -1,0 +1,56 @@
+@model UniversitySystem.Web.Models.UeEditViewModel
+
+@{
+    ViewData["Title"] = "Modifier l'UE";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">Modifier l'UE</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="EditUe" asp-route-id="@Model.Code" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Code" class="form-label"></label>
+                        <input asp-for="Code" class="form-control" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Intitule" class="form-label"></label>
+                        <input asp-for="Intitule" class="form-control" />
+                        <span asp-validation-for="Intitule" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Credits" class="form-label"></label>
+                            <input asp-for="Credits" type="number" class="form-control" />
+                            <span asp-validation-for="Credits" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="VolumeHoraire" class="form-label"></label>
+                            <input asp-for="VolumeHoraire" type="number" class="form-control" />
+                            <span asp-validation-for="VolumeHoraire" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <a asp-action="Ues" class="btn btn-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

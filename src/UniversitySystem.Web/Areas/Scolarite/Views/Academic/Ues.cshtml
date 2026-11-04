@@ -1,0 +1,49 @@
+@model IEnumerable<UniversitySystem.Domain.Entities.Ue>
+
+@{
+    ViewData["Title"] = "Unités d'Enseignement";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Unités d'Enseignement (UE)</h2>
+    <a asp-action="CreateUe" class="btn btn-primary">Nouvelle UE</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<table class="table table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Code</th>
+            <th>Intitulé</th>
+            <th>Crédits</th>
+            <th>Volume horaire</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ue in Model)
+        {
+            <tr>
+                <td><strong>@ue.Code</strong></td>
+                <td>@ue.Intitule</td>
+                <td>@ue.Credits</td>
+                <td>@ue.VolumeHoraire h</td>
+                <td>
+                    <a asp-action="EditUe" asp-route-id="@ue.Code" class="btn btn-sm btn-warning">Modifier</a>
+                    <form asp-action="DeleteUe" asp-route-id="@ue.Code" method="post" class="d-inline" onsubmit="return confirm('Êtes-vous sûr ?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

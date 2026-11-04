@@ -28,7 +28,7 @@ public static class DataSeeder
         // 5. Paramètres calendrier
         await SeedParametresCalendrierAsync(context);
 
-        // 6. Facultés et Filières (pour tester l'étape 2)
+        // 6. Facultés, Filières et UE (pour tester)
         await SeedFacultesEtFilieresAsync(context);
     }
 
@@ -97,13 +97,12 @@ public static class DataSeeder
             // SuperAdmin a TOUTES les permissions (y compris les nouvelles)
             ("superadmin", perms.Keys.ToArray()),
             
-            // Scolarité (Mise à jour avec les permissions M3)
+            // Scolarité
             ("scolarite", new[]
             {
                 "students.manage", "inscriptions.manage", "documents.manage",
                 "notes.view", "notes.validation", "programmation.view",
                 "paiements.manage", "paiements.view", "exports.generate", "dashboard.view",
-                // Nouvelles permissions M3
                 "DOSSIER_LIRE", "DOSSIER_TRAITER", "CONFIG_ACADEMIQUE", "ETUDIANTS_LISTER"
             }),
             
@@ -193,27 +192,24 @@ public static class DataSeeder
     {
         if (await context.Facultes.AnyAsync()) return;
 
-        var fds = new Faculte
-        {
-            CodeFaculte = "FDS",
-            NomFaculte = "Faculté des Sciences",
-            TypeFaculte = TypeFaculte.Scientifique
-        };
-        
-        var faseg = new Faculte
-        {
-            CodeFaculte = "FASEG",
-            NomFaculte = "Faculté des Sciences Économiques et de Gestion",
-            TypeFaculte = TypeFaculte.Litteraire
-        };
+        var fds = new Faculte { CodeFaculte = "FDS", NomFaculte = "Faculté des Sciences", TypeFaculte = TypeFaculte.Scientifique };
+        var faseg = new Faculte { CodeFaculte = "FASEG", NomFaculte = "Faculté des Sciences Économiques et de Gestion", TypeFaculte = TypeFaculte.Litteraire };
 
         context.Facultes.AddRange(fds, faseg);
         await context.SaveChangesAsync();
 
-        context.Filieres.AddRange(
-            new Filiere { CodeFiliere = "LIC-INFO", NomFiliere = "Licence Informatique", IdFaculte = fds.IdFaculte },
-            new Filiere { CodeFiliere = "LIC-MATH", NomFiliere = "Licence Mathématiques", IdFaculte = fds.IdFaculte },
-            new Filiere { CodeFiliere = "LIC-GEST", NomFiliere = "Licence Gestion", IdFaculte = faseg.IdFaculte }
+        var filiereInfo = new Filiere { CodeFiliere = "LIC-INFO", NomFiliere = "Licence Informatique", IdFaculte = fds.IdFaculte };
+        var filiereMath = new Filiere { CodeFiliere = "LIC-MATH", NomFiliere = "Licence Mathématiques", IdFaculte = fds.IdFaculte };
+        var filiereGest = new Filiere { CodeFiliere = "LIC-GEST", NomFiliere = "Licence Gestion", IdFaculte = faseg.IdFaculte };
+
+        context.Filieres.AddRange(filiereInfo, filiereMath, filiereGest);
+        await context.SaveChangesAsync();
+
+        // Ajout d'UE de test
+        context.Ues.AddRange(
+            new Ue { Code = "INF101", Intitule = "Programmation", Credits = 6, VolumeHoraire = 60 },
+            new Ue { Code = "MAT101", Intitule = "Analyse Mathématique", Credits = 6, VolumeHoraire = 60 },
+            new Ue { Code = "GES101", Intitule = "Comptabilité Générale", Credits = 6, VolumeHoraire = 60 }
         );
         await context.SaveChangesAsync();
     }

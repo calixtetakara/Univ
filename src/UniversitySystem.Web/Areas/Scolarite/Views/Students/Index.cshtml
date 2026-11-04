@@ -1,3 +1,122 @@
-@{ ViewData["Title"] = "Liste des étudiants"; }
-<h2 class="mt-4">Liste des étudiants</h2>
-<p class="text-muted">La liste globale des étudiants sera affichée ici (M3-10).</p>
+@model UniversitySystem.Web.Models.StudentIndexViewModel
+@using UniversitySystem.Domain.Entities
+@using UniversitySystem.Domain.Enums
+
+@{
+    ViewData["Title"] = "Liste des étudiants";
+    var facultes = ViewBag.Facultes as List<Faculte> ?? new List<Faculte>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Liste des étudiants</h2>
+    <span class="badge bg-primary fs-6">@Model.TotalCount étudiants</span>
+</div>
+
+<!-- Formulaire de filtres -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Statut du dossier</label>
+                <select name="statutDossier" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="@((int)StatutInscription.Brouillon)" selected="@(Model.StatutDossier == StatutInscription.Brouillon)">En cours</option>
+                    <option value="@((int)StatutInscription.Validee)" selected="@(Model.StatutDossier == StatutInscription.Validee)">Validé</option>
+                    <option value="@((int)StatutInscription.Rejetee)" selected="@(Model.StatutDossier == StatutInscription.Rejetee)">Rejeté</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Faculté</label>
+                <select name="codeFaculte" class="form-select">
+                    <option value="">Toutes les facultés</option>
+                    @foreach (var f in facultes)
+                    {
+                        <option value="@f.CodeFaculte" selected="@(Model.CodeFaculte == f.CodeFaculte)">@f.NomFaculte</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Réinitialiser</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tableau des étudiants -->
+@if (!Model.Etudiants.Any())
+{
+    <div class="alert alert-info text-center">
+        Aucun étudiant trouvé.
+    </div>
+}
+else
+{
+    <div class="table-responsive shadow-sm">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Matricule</th>
+                    <th>Nom complet</th>
+                    <th>Faculté</th>
+                    <th>Filière</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.Etudiants)
+                {
+                    <tr>
+                        <td>
+                            @if (string.IsNullOrEmpty(e.Matricule))
+                            {
+                                <span class="badge bg-warning text-dark">En attente</span>
+                            }
+                            else
+                            {
+                                @e.Matricule
+                            }
+                        </td>
+                        <td>@e.Nom @e.Prenom</td>
+                        <td>@e.NomFaculte</td>
+                        <td>@e.NomFiliere</td>
+                        <td>
+                            @if (e.StatutDossier == StatutInscription.Validee)
+                            {
+                                <span class="badge bg-success">Validé</span>
+                            }
+                            else if (e.StatutDossier == StatutInscription.Brouillon)
+                            {
+                                <span class="badge bg-warning text-dark">En cours</span>
+                            }
+                            else if (e.StatutDossier == StatutInscription.Rejetee)
+                            {
+                                <span class="badge bg-danger">Rejeté</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(Model.Page == i ? "active" : "")">
+                        <a class="page-link" asp-action="Index" 
+                           asp-route-page="@i" 
+                           asp-route-statutDossier="@Model.StatutDossier" 
+                           asp-route-codeFaculte="@Model.CodeFaculte">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}
