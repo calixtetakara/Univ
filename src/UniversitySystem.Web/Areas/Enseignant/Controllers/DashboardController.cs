@@ -8,7 +8,7 @@ using UniversitySystem.Web.Authorization;
 namespace UniversitySystem.Web.Areas.Enseignant.Controllers;
 
 [Area("Enseignant")]
-[Authorize(Roles = "enseignant,superadmin")]
+[Authorize(Roles = "enseignant")]
 [HasPermission("PLANNING_CONSULTER_PERSO")]
 public class DashboardController : Controller
 {

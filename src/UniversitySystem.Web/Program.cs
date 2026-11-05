@@ -53,9 +53,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 // 5. Autorisation
 builder.Services.AddAuthorization(options =>
 {
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
+    // On ne met PAS de FallbackPolicy globale.
+    // La protection est assurée par les attributs [Authorize] sur les contrôleurs sensibles.
+    // Cela permet aux pages publiques (Login, ForgotPassword, etc.) de fonctionner sans cookie.
 });
 
 // 6. Services applicatifs
@@ -68,7 +68,7 @@ builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IMatriculeService, MatriculeService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
-// Services de paiement
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // Gateway (Fake en dev, Real en prod)

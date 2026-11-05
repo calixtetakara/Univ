@@ -9,7 +9,7 @@ using UniversitySystem.Infrastructure.Services;
 namespace UniversitySystem.Web.Areas.Student.Controllers;
 
 [Area("Student")]
-[Authorize(Roles = "etudiant,superadmin")]
+[Authorize(Roles = "etudiant")]
 public class DashboardController : Controller
 {
     private readonly AppDbContext _context;

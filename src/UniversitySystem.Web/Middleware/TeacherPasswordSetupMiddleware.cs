@@ -33,6 +33,7 @@ public class TeacherPasswordSetupMiddleware
                 // Liste blanche : autorise la page de setup de l'enseignant
                 var isAllowedPath = 
                     path.StartsWith("/enseignant/setup") ||       // <-- Page de setup enseignant
+                     path.StartsWith("/identity/forgotpassword") ||
                     path.StartsWith("/account/changepassword") || 
                     path.StartsWith("/account/logout") || 
                     path.StartsWith("/account/accessdenied") ||

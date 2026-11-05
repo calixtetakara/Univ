@@ -59,11 +59,12 @@ public class PasswordResetService : IPasswordResetService
             });
 
             // 3. Email avec le token EN CLAIR (uniquement dans le lien)
+            // LIEN CORRIGÉ : /forgot-password/reset
             _context.EmailQueues.Add(new EmailQueue
             {
                 Destinataire = user.Email,
                 Sujet = "Réinitialisation de votre mot de passe",
-                CorpsHtml = $"<p>Bonjour {user.Prenom},</p><p>Cliquez sur ce lien pour réinitialiser votre mot de passe (valable 30 minutes) :</p><p><a href='https://localhost:5074/Identity/ForgotPassword/Reset?token={token}'>Réinitialiser mon mot de passe</a></p>",
+                CorpsHtml = $"<p>Bonjour {user.Prenom},</p><p>Cliquez sur ce lien pour réinitialiser votre mot de passe (valable 30 minutes) :</p><p><a href='http://localhost:5074/forgot-password/reset?token={token}'>Réinitialiser mon mot de passe</a></p>",
                 Envoye = false,
                 DateCreation = DateTime.UtcNow,
                 Tentatives = 0
