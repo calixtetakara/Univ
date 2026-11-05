@@ -3,6 +3,7 @@ using Hangfire.InMemory;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using UniversitySystem.Infrastructure.Export; // <-- AJOUT
 using UniversitySystem.Infrastructure.Persistence;
 using UniversitySystem.Infrastructure.Persistence.Seed;
 using UniversitySystem.Infrastructure.Services;
@@ -70,6 +71,9 @@ builder.Services.AddScoped<IMatriculeService, MatriculeService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+// Services d'export
+builder.Services.AddScoped<ICsvGenerator, CsvGenerator>();
+builder.Services.AddScoped<IPdfGenerator, PdfGenerator>();
 
 // Gateway (Fake en dev, Real en prod)
 if (builder.Environment.IsDevelopment())

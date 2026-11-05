@@ -44,15 +44,17 @@
                         }
 
                         <!-- Menu déroulant "Espaces" (Scolarité et Pédagogie uniquement) -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-warning fw-bold" href="#" id="spacesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Espaces
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="spacesDropdown">
-                                <li><a class="dropdown-item" href="/Scolarite">Espace Scolarité</a></li>
-                                <li><a class="dropdown-item" href="/Pedagogie">Espace Pédagogie</a></li>
-                            </ul>
-                        </li>
+                        <!-- Menu déroulant "Espaces" -->
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle text-warning fw-bold" href="#" id="spacesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Espaces
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="spacesDropdown">
+        <li><a class="dropdown-item" href="/Scolarite">Espace Scolarité</a></li>
+        <li><a class="dropdown-item" href="/Scolarite/Students">Liste des étudiants</a></li> <!-- AJOUT -->
+        <li><a class="dropdown-item" href="/Pedagogie">Espace Pédagogie</a></li>
+    </ul>
+</li>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

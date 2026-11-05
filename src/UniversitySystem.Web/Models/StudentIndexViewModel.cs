@@ -6,12 +6,13 @@ namespace UniversitySystem.Web.Models;
 public class StudentIndexViewModel
 {
     public IReadOnlyList<EtudiantListDto> Etudiants { get; set; } = new List<EtudiantListDto>();
-    
+
     // Filtres
+    public string? SearchNom { get; set; } // <-- C'est cette ligne qui manquait
     public StatutInscription? StatutDossier { get; set; }
     public string? CodeFaculte { get; set; }
     public string? CodeFiliere { get; set; }
-    
+
     // Pagination
     public int Page { get; set; } = 1;
     public int TotalPages { get; set; }
