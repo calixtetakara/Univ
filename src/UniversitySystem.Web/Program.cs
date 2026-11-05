@@ -67,6 +67,7 @@ builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IMatriculeService, MatriculeService>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 // Services de paiement
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 

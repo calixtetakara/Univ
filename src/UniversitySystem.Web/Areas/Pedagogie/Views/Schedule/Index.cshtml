@@ -1,0 +1,36 @@
+@model IEnumerable<UniversitySystem.Domain.Entities.Programmation>
+
+@{
+    ViewData["Title"] = "Planning des cours";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Planning des cours</h2>
+    <a asp-action="Create" class="btn btn-primary">Nouveau créneau</a>
+</div>
+
+<table class="table table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Jour</th>
+            <th>Horaire</th>
+            <th>UE</th>
+            <th>Enseignant</th>
+            <th>Salle</th>
+            <th>Filière</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.JourSemaine</td>
+                <td>@p.HeureDebut.ToString(@"hh\:mm") - @p.HeureFin.ToString(@"hh\:mm")</td>
+                <td>@p.Ue.Code - @p.Ue.Intitule</td>
+                <td>@p.Enseignant.Utilisateur.Nom @p.Enseignant.Utilisateur.Prenom</td>
+                <td>@p.Salle.Code</td>
+                <td>@p.Filiere.NomFiliere</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,107 @@
+@model UniversitySystem.Web.Models.ScheduleCreateViewModel
+@using UniversitySystem.Domain.Entities
+
+@{
+    ViewData["Title"] = "Nouveau créneau";
+    var enseignants = ViewBag.Enseignants as List<Enseignant>;
+    var ues = ViewBag.Ues as List<Ue>;
+    var salles = ViewBag.Salles as List<Salle>;
+    var filieres = ViewBag.Filieres as List<Filiere>;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Planifier un cours</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdEnseignant" class="form-label">Enseignant</label>
+                            <select asp-for="IdEnseignant" class="form-select">
+                                @foreach (var e in enseignants)
+                                {
+                                    <option value="@e.IdEnseignant">@e.Utilisateur.Nom @e.Utilisateur.Prenom</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CodeUe" class="form-label">UE</label>
+                            <select asp-for="CodeUe" class="form-select">
+                                @foreach (var ue in ues)
+                                {
+                                    <option value="@ue.Code">@ue.Code - @ue.Intitule</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdSalle" class="form-label">Salle</label>
+                            <select asp-for="IdSalle" class="form-select">
+                                @foreach (var s in salles)
+                                {
+                                    <option value="@s.IdSalle">@s.Code (Capacité: @s.Capacite)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdFiliere" class="form-label">Filière</label>
+                            <select asp-for="IdFiliere" class="form-select">
+                                @foreach (var f in filieres)
+                                {
+                                    <option value="@f.IdFiliere">@f.NomFiliere</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="JourSemaine" class="form-label">Jour</label>
+                            <select asp-for="JourSemaine" class="form-select">
+                                <option value="1">Lundi</option>
+                                <option value="2">Mardi</option>
+                                <option value="3">Mercredi</option>
+                                <option value="4">Jeudi</option>
+                                <option value="5">Vendredi</option>
+                                <option value="6">Samedi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="HeureDebut" class="form-label">Début</label>
+                            <input asp-for="HeureDebut" type="time" class="form-control" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="HeureFin" class="form-label">Fin</label>
+                            <input asp-for="HeureFin" type="time" class="form-control" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="Semestre" class="form-label">Semestre</label>
+                            <select asp-for="Semestre" class="form-select">
+                                <option value="1">S1</option>
+                                <option value="2">S2</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AnneeAcademique" class="form-label">Année académique</label>
+                        <input asp-for="AnneeAcademique" class="form-control" value="2026-2027" readonly />
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Enregistrer</button>
+                        <a asp-action="Index" class="btn btn-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

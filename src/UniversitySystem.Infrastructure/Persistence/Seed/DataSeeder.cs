@@ -218,4 +218,18 @@ public static class DataSeeder
         );
         await context.SaveChangesAsync();
     }
+            // Dans SeedAsync, ajoute :
+        // await SeedSallesAsync(context);
+
+        private static async Task SeedSallesAsync(AppDbContext context)
+        {
+            if (await context.Salles.AnyAsync()) return;
+
+            context.Salles.AddRange(
+                new Salle { Code = "A101", Nom = "Salle A101", Capacite = 30, Type = TypeSalle.Cours },
+                new Salle { Code = "B201", Nom = "Salle B201", Capacite = 50, Type = TypeSalle.Cours },
+                new Salle { Code = "AMPHI-1", Nom = "Amphithéâtre 1", Capacite = 200, Type = TypeSalle.Amphi }
+            );
+            await context.SaveChangesAsync();
+        }
 }
