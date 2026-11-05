@@ -1,0 +1,60 @@
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Super-Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <!-- Barre de navigation noire pour différencier le SuperAdmin -->
+        <nav class="navbar navbar-expand-sm navbar-dark bg-black border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="SuperAdmin" asp-controller="Home" asp-action="Index">UnivSystem - Super-Admin</a>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:PERMISSIONS_GERER")).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="SuperAdmin" asp-controller="Permissions" asp-action="Roles">Permissions par rôle</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="SuperAdmin" asp-controller="Permissions" asp-action="Users">Permissions individuelles</a>
+                            </li>
+                        }
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:FINANCES_LIRE")).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="SuperAdmin" asp-controller="Finances" asp-action="Index">Finances</a>
+                            </li>
+                        }
+                        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:KPI_LIRE")).Succeeded)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="SuperAdmin" asp-controller="Kpi" asp-action="Index">KPI</a>
+                            </li>
+                        }
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

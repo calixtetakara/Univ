@@ -1,21 +1,25 @@
 namespace UniversitySystem.Infrastructure.Services;
 
 /// <summary>
-/// Service de gestion des permissions RBAC.
-/// Version actuelle : permissions basées uniquement sur le rôle (2 niveaux).
+/// Contrat du service de permissions.
 /// </summary>
 public interface IPermissionService
 {
     /// <summary>
-    /// Vérifie si un utilisateur possède une permission donnée via son rôle.
+    /// Vérifie si un utilisateur possède une permission donnée.
     /// </summary>
-    /// <param name="userId">Identifiant de l'utilisateur.</param>
-    /// <param name="permissionCode">Code de la permission (ex: "students.manage").</param>
     Task<bool> HasPermissionAsync(int userId, string permissionCode);
 
     /// <summary>
-    /// Retourne la liste de tous les codes de permission accordés à l'utilisateur
-    /// via son rôle.
+    /// Retourne la liste des codes de permissions d'un utilisateur.
     /// </summary>
     Task<IReadOnlyList<string>> GetUserPermissionsAsync(int userId);
+
+    /// <summary>
+    /// Met à jour les permissions d'un rôle (M6-03).
+    /// </summary>
+    /// <param name="idRole">L'ID du rôle à modifier.</param>
+    /// <param name="changes">Dictionnaire { codePermission: true/false }.</param>
+    /// <param name="modifiedBy">L'ID du SuperAdmin qui effectue la modification.</param>
+    Task UpdateRolePermissionsAsync(int idRole, Dictionary<string, bool> changes, int modifiedBy);
 }

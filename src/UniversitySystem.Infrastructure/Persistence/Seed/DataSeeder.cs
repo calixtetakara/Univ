@@ -77,7 +77,11 @@ public static class DataSeeder
             new() { Code = "ENSEIGNANT_CREER", Nom = "Créer des enseignants", Description = "Gestion des comptes enseignants" },
             new() { Code = "PROGRAMMATION_GERER", Nom = "Gérer le planning", Description = "Création et modification des cours" },
             new() { Code = "PLANNING_CONSULTER_PERSO", Nom = "Consulter son planning", Description = "Voir ses cours (enseignant)" },
-            new() { Code = "ETUDIANTS_CLASSE_LIRE", Nom = "Lire les étudiants de sa classe", Description = "Voir les étudiants de ses filières" }
+            new() { Code = "ETUDIANTS_CLASSE_LIRE", Nom = "Lire les étudiants de sa classe", Description = "Voir les étudiants de ses filières" },
+                        // Nouvelles permissions (M6)
+            new() { Code = "PERMISSIONS_GERER", Nom = "Gérer les permissions", Description = "Accorder ou retirer des permissions" },
+            new() { Code = "FINANCES_LIRE", Nom = "Voir les finances", Description = "Consulter les paiements" },
+            new() { Code = "KPI_LIRE", Nom = "Voir les KPI", Description = "Consulter les indicateurs de performance" }
         };
 
         await context.Permissions.AddRangeAsync(permissions);

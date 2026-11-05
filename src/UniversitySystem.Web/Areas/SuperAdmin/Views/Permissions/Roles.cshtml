@@ -1,0 +1,134 @@
+@model UniversitySystem.Web.Models.PermissionMatrixViewModel
+
+@{
+    ViewData["Title"] = "Permissions par rôle";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Matrice des Permissions</h2>
+    <div>
+        <span id="modCounter" class="badge bg-warning text-dark fs-6 d-none">0 modification(s)</span>
+        <button type="button" class="btn btn-secondary" onclick="window.location.reload()">Annuler</button>
+        <button type="button" class="btn btn-primary" id="btnSave" disabled>Enregistrer</button>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form id="matrixForm" method="post" asp-action="UpdateRoles">
+    @Html.AntiForgeryToken()
+
+    <div class="table-responsive shadow-sm">
+        <table class="table table-bordered align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 250px;">Permission</th>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <th class="text-center">@role.Nom</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var category in Model.PermissionsGroupedByCategory)
+                {
+                    <tr class="table-secondary">
+                        <td colspan="@(Model.Roles.Count + 1)" class="fw-bold">@category.Key</td>
+                    </tr>
+
+                    @foreach (var perm in category.Value)
+                    {
+                        <tr>
+                            <td>@perm.Nom <br /><small class="text-muted">@perm.Code</small></td>
+                            @foreach (var role in Model.Roles)
+                            {
+                                var key = $"{role.Code}:{perm.Code}";
+                                var isChecked = Model.Matrix.ContainsKey(key) && Model.Matrix[key];
+                                var isLocked = Model.LockedCells.Contains(key);
+
+                                <td class="text-center">
+                                    @if (isLocked)
+                                    {
+                                        <!-- Cellule verrouillée (Anti-Lockout RG-10) -->
+                                        <input type="checkbox" class="form-check-input" checked disabled />
+                                        <span title="Permission critique non modifiable">🔒</span>
+                                        <input type="hidden" name="Matrix[@key]" value="true" />
+                                    }
+                                    else
+                                    {
+                                        <!-- Cellule modifiable -->
+                                        <input type="checkbox" class="form-check-input matrix-checkbox" 
+                                               name="Matrix[@key]" 
+                                               value="true" 
+                                               data-key="@key"
+                                               data-original="@isChecked.ToString().ToLower()"
+                                               @(isChecked ? "checked" : "") />
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const checkboxes = document.querySelectorAll('.matrix-checkbox');
+            const counterEl = document.getElementById('modCounter');
+            const saveBtn = document.getElementById('btnSave');
+            let modifications = new Set();
+
+            function updateCounter() {
+                const count = modifications.size;
+                if (count > 0) {
+                    counterEl.textContent = `${count} modification(s) non enregistrée(s)`;
+                    counterEl.classList.remove('d-none');
+                    saveBtn.disabled = false;
+                } else {
+                    counterEl.classList.add('d-none');
+                    saveBtn.disabled = true;
+                }
+            }
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', function () {
+                    const key = this.getAttribute('data-key');
+                    const original = this.getAttribute('data-original') === 'true';
+                    const current = this.checked;
+
+                    if (original !== current) {
+                        modifications.add(key);
+                    } else {
+                        modifications.delete(key);
+                    }
+                    updateCounter();
+                });
+            });
+
+            saveBtn.addEventListener('click', function () {
+                // On s'assure que les cases non cochées sont bien envoyées avec value=false
+                checkboxes.forEach(cb => {
+                    if (!cb.checked) {
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = cb.name;
+                        hidden.value = 'false';
+                        document.getElementById('matrixForm').appendChild(hidden);
+                    }
+                });
+                document.getElementById('matrixForm').submit();
+            });
+        });
+    </script>
+}
