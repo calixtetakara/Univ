@@ -1,3 +1,159 @@
-@{ ViewData["Title"] = "Finances"; }
-<h2>Section financière</h2>
-<p>Vue en lecture seule (M6-07).</p>
+@model UniversitySystem.Web.Models.FinanceIndexViewModel
+@using UniversitySystem.Domain.Entities
+
+@{
+    ViewData["Title"] = "Finances";
+    var facultes = ViewBag.Facultes as List<Faculte> ?? new List<Faculte>();
+    var moyens = ViewBag.MoyensPaiement as string[] ?? new string[0];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Section financière</h2>
+    <button class="btn btn-success" disabled title="Disponible en M7">
+        Télécharger (M7)
+    </button>
+</div>
+
+<!-- Cartes de totaux -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title text-muted">Chiffre d'affaires total</h5>
+                <h3 class="text-primary">@Model.TotalGlobal.ToString("N0") FCFA</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-info">
+            <div class="card-body">
+                <h5 class="card-title text-muted text-center mb-3">Par moyen de paiement</h5>
+                <ul class="list-unstyled mb-0">
+                    @foreach (var kvp in Model.TotalParMoyen)
+                    {
+                        <li class="d-flex justify-content-between">
+                            <span>@kvp.Key</span>
+                            <strong>@kvp.Value.ToString("N0") FCFA</strong>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-success">
+            <div class="card-body">
+                <h5 class="card-title text-muted text-center mb-3">Par type</h5>
+                <ul class="list-unstyled mb-0">
+                    @foreach (var kvp in Model.TotalParType)
+                    {
+                        <li class="d-flex justify-content-between">
+                            <span>@kvp.Key</span>
+                            <strong>@kvp.Value.ToString("N0") FCFA</strong>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">Moyen</label>
+                <select name="moyenPaiement" class="form-select">
+                    <option value="">Tous</option>
+                    @foreach (var m in moyens)
+                    {
+                        <option value="@m" selected="@(Model.MoyenPaiement == m)">@m</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Faculté</label>
+                <select name="codeFaculte" class="form-select">
+                    <option value="">Toutes</option>
+                    @foreach (var f in facultes)
+                    {
+                        <option value="@f.CodeFaculte" selected="@(Model.CodeFaculte == f.CodeFaculte)">@f.NomFaculte</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Date début</label>
+                <input type="date" name="dateDebut" class="form-control" value="@Model.DateDebut?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Date fin</label>
+                <input type="date" name="dateFin" class="form-control" value="@Model.DateFin?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Réinitialiser</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tableau des transactions -->
+<div class="table-responsive shadow-sm">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+            <tr>
+                <th>Référence</th>
+                <th>Étudiant</th>
+                <th>Faculté</th>
+                <th>Filière</th>
+                <th>Moyen</th>
+                <th>Montant</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Transactions.Any())
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Aucune transaction trouvée.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var t in Model.Transactions)
+                {
+                    <tr>
+                        <td><code>@t.Reference</code></td>
+                        <td>@t.Matricule - @t.NomComplet</td>
+                        <td>@t.Faculte</td>
+                        <td>@t.Filiere</td>
+                        <td>@t.MoyenPaiement</td>
+                        <td class="fw-bold text-success">@t.Montant.ToString("N0") FCFA</td>
+                        <td>@t.DatePaiement.ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(Model.Page == i ? "active" : "")">
+                    <a class="page-link" asp-action="Index" 
+                       asp-route-page="@i" 
+                       asp-route-moyenPaiement="@Model.MoyenPaiement"
+                       asp-route-codeFaculte="@Model.CodeFaculte">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
