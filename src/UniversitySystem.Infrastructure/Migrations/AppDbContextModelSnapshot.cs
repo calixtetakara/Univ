@@ -1066,6 +1066,29 @@ namespace UniversitySystem.Infrastructure.Migrations
                     b.ToTable("utilisateurs", (string)null);
                 });
 
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.UtilisateurPermission", b =>
+                {
+                    b.Property<int>("IdUtilisateur")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdPermission")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Accorde")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("accorde");
+
+                    b.Property<int?>("ModifiePar")
+                        .HasColumnType("int")
+                        .HasColumnName("modifie_par");
+
+                    b.HasKey("IdUtilisateur", "IdPermission");
+
+                    b.HasIndex("IdPermission");
+
+                    b.ToTable("utilisateur_permissions", (string)null);
+                });
+
             modelBuilder.Entity("UniversitySystem.Domain.Entities.DocumentEtudiant", b =>
                 {
                     b.HasOne("UniversitySystem.Domain.Entities.Etudiant", "Etudiant")
@@ -1266,6 +1289,25 @@ namespace UniversitySystem.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("UniversitySystem.Domain.Entities.UtilisateurPermission", b =>
+                {
+                    b.HasOne("UniversitySystem.Domain.Entities.Permission", "Permission")
+                        .WithMany()
+                        .HasForeignKey("IdPermission")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UniversitySystem.Domain.Entities.Utilisateur", "Utilisateur")
+                        .WithMany()
+                        .HasForeignKey("IdUtilisateur")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Utilisateur");
                 });
 
             modelBuilder.Entity("UniversitySystem.Domain.Entities.Faculte", b =>

@@ -1,0 +1,95 @@
+@model UniversitySystem.Web.Models.UserPermissionsViewModel
+
+@{
+    ViewData["Title"] = "Overrides de l'agent";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2>@Model.NomComplet</h2>
+        <p class="text-muted">@Model.Email — Rôle : @Model.RoleNom</p>
+    </div>
+    <a asp-action="Users" class="btn btn-outline-secondary">← Retour à la liste</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form asp-action="UpdateUserPermissions" asp-route-id="@Model.IdUtilisateur" method="post">
+    @Html.AntiForgeryToken()
+    
+    <div class="table-responsive shadow-sm mb-3">
+        <table class="table table-bordered align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Permission</th>
+                    <th class="text-center" style="width: 150px;">Origine</th>
+                    <th class="text-center" style="width: 150px;">Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var perm in Model.Permissions)
+                {
+                    <tr>
+                        <td>
+                            @perm.Nom <br />
+                            <small class="text-muted">@perm.Code</small>
+                        </td>
+                        <td class="text-center">
+                            @if (perm.Override.HasValue)
+                            {
+                                <span class="badge bg-warning text-dark">Override</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Rôle</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <!-- 3 états : Hérité (gris), Accordé (vert), Refusé (rouge) -->
+                            @if (perm.Override.HasValue)
+                            {
+                                <!-- Override existe : on peut le modifier -->
+                                <select name="changes[@perm.Code]" class="form-select form-select-sm">
+                                    <option value="true" selected="@(perm.Override.Value == true)">Accordé</option>
+                                    <option value="false" selected="@(perm.Override.Value == false)">Refusé</option>
+                                    <option value="">Hérité du rôle</option>
+                                </select>
+                            }
+                            else
+                            {
+                                <!-- Pas d'override : on affiche l'état hérité -->
+                                <select name="changes[@perm.Code]" class="form-select form-select-sm">
+                                    <option value="">Hérité (@(perm.AccordeParRole ? "Accordé" : "Refusé"))</option>
+                                    <option value="true">Accordé</option>
+                                    <option value="false">Refusé</option>
+                                </select>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+        <a asp-action="Users" class="btn btn-secondary">Annuler</a>
+    </div>
+</form>
+
+<!-- Bouton Réinitialiser (séparé) -->
+@if (Model.Permissions.Any(p => p.Override.HasValue))
+{
+    <hr />
+    <form asp-action="ResetUserOverrides" asp-route-id="@Model.IdUtilisateur" method="post" onsubmit="return confirm('Supprimer tous les overrides de cet agent ?');">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">Réinitialiser aux droits du rôle</button>
+    </form>
+}

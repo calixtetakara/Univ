@@ -42,7 +42,9 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<ParametreCalendrier> ParametresCalendrier => Set<ParametreCalendrier>();
     public DbSet<ExportJob> ExportJobs => Set<ExportJob>();
+    public DbSet<UtilisateurPermission> UtilisateurPermissions { get; set; }
     public DbSet<Compteur> Compteurs => Set<Compteur>();
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

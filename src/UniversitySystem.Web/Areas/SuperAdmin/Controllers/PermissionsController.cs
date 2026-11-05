@@ -25,8 +25,9 @@ public class PermissionsController : Controller
     }
 
     // =========================================================
-    // AFFICHAGE DE LA MATRICE (GET)
+    // 6.A : MATRICE DES PERMISSIONS PAR RÔLE
     // =========================================================
+
     [HttpGet]
     public async Task<IActionResult> Roles()
     {
@@ -48,7 +49,6 @@ public class PermissionsController : Controller
                     Code = p.Code,
                     Nom = p.Nom,
                     Category = p.Module ?? "Général",
-                    // On identifie les permissions critiques pour le verrouillage UI
                     EstCritique = (p.Code == "roles.manage" || p.Code == "permissions.view")
                 }).ToList() as IReadOnlyList<PermissionDto>
             );
@@ -89,18 +89,13 @@ public class PermissionsController : Controller
         return View(vm);
     }
 
-    // =========================================================
-    // ENREGISTREMENT DES MODIFICATIONS (POST - M6-03)
-    // =========================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateRoles(Dictionary<string, bool> matrix)
     {
-        // Si aucune modification n'est envoyée (cas où tout est décoché)
         if (matrix == null) matrix = new Dictionary<string, bool>();
 
         // 1. Vérification anti-lockout côté contrôleur (Double sécurité RG-10.1)
-        // Empêche de décocher les permissions critiques sur superadmin
         var criticalKeys = new[] { "superadmin:roles.manage", "superadmin:permissions.view" };
         foreach (var key in criticalKeys)
         {
@@ -116,10 +111,8 @@ public class PermissionsController : Controller
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var roles = await _context.Roles.ToListAsync();
 
-            // 2. Appliquer les modifications rôle par rôle
             foreach (var role in roles)
             {
-                // Filtrer les changements pour ce rôle
                 var changesForRole = new Dictionary<string, bool>();
                 foreach (var kvp in matrix)
                 {
@@ -132,7 +125,6 @@ public class PermissionsController : Controller
 
                 if (changesForRole.Any())
                 {
-                    // Appel du service (qui gère l'audit et le anti-lockout backend)
                     await _permissionService.UpdateRolePermissionsAsync(role.IdRole, changesForRole, userId);
                 }
             }
@@ -148,11 +140,198 @@ public class PermissionsController : Controller
     }
 
     // =========================================================
-    // ONGLET 6.B (PLACEHOLDER POUR M6-04)
+    // 6.B : OVERRIDES INDIVIDUELS
     // =========================================================
+
     [HttpGet]
-    public IActionResult Users()
+    public async Task<IActionResult> Users(string? search)
     {
-        return View();
+        // 1. Charger les agents (scolarite et pedagogie, actifs)
+        var query = _context.Utilisateurs
+            .Include(u => u.Role)
+            .Where(u => (u.Role.Code == "scolarite" || u.Role.Code == "pedagogie") && u.Statut == UniversitySystem.Domain.Enums.StatutUtilisateur.Actif);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(u => u.Email.Contains(search) || u.Nom.Contains(search));
+        }
+
+        var users = await query
+            .OrderBy(u => u.Nom)
+            .ToListAsync();
+
+        ViewBag.Search = search;
+        return View(users);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> UserDetails(int id)
+    {
+        var user = await _context.Utilisateurs
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.IdUtilisateur == id);
+
+        if (user == null) return NotFound();
+
+        // Charger les permissions du rôle
+        var rolePermissions = await _context.RolePermissions
+            .Where(rp => rp.IdRole == user.IdRole)
+            .Select(rp => rp.Permission.Code)
+            .ToListAsync();
+
+        // Charger les overrides de l'utilisateur (avec Include pour éviter NullReferenceException)
+        var userOverrides = await _context.UtilisateurPermissions
+            .Include(up => up.Permission)
+            .Where(up => up.IdUtilisateur == id)
+            .ToDictionaryAsync(up => up.Permission.Code, up => up.Accorde);
+
+        // Charger toutes les permissions
+        var allPermissions = await _context.Permissions.ToListAsync();
+
+        var model = new UserPermissionsViewModel
+        {
+            IdUtilisateur = user.IdUtilisateur,
+            Email = user.Email,
+            NomComplet = $"{user.Prenom} {user.Nom}",
+            RoleCode = user.Role.Code,
+            RoleNom = user.Role.Nom,
+            Permissions = allPermissions.Select(p => new PermissionStateDto
+            {
+                IdPermission = p.IdPermission,
+                Code = p.Code,
+                Nom = p.Nom,
+                Category = p.Module ?? "Général",
+                AccordeParRole = rolePermissions.Contains(p.Code),
+                Override = userOverrides.ContainsKey(p.Code) ? userOverrides[p.Code] : null
+            }).ToList()
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateUserPermissions(int id, Dictionary<string, bool?> changes)
+    {
+        // Anti-lockout (RG-10.2) : On ne peut pas modifier ses propres overrides
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (id == currentUserId)
+        {
+            TempData["Error"] = "Vous ne pouvez pas modifier vos propres permissions individuelles (Anti-Lockout RG-10.2).";
+            return RedirectToAction(nameof(Users));
+        }
+
+        try
+        {
+            foreach (var kvp in changes)
+            {
+                var permCode = kvp.Key;
+                var value = kvp.Value;
+
+                var permission = await _context.Permissions.FirstAsync(p => p.Code == permCode);
+                var existing = await _context.UtilisateurPermissions
+                    .FirstOrDefaultAsync(up => up.IdUtilisateur == id && up.IdPermission == permission.IdPermission);
+
+                bool? before = existing?.Accorde;
+
+                if (value == null)
+                {
+                    // Suppression de l'override (retour au rôle)
+                    if (existing != null)
+                    {
+                        _context.UtilisateurPermissions.Remove(existing);
+                        
+                        // Audit
+                        _context.AuditLogs.Add(new AuditLog
+                        {
+                            IdUtilisateur = currentUserId,
+                            Action = "USER_OVERRIDE_RESET",
+                            Entite = "Utilisateur",
+                            IdEntite = id.ToString(),
+                            Details = $"{{\"permission\":\"{permCode}\", \"before\":{(before == true ? "true" : "false")}, \"after\":null}}",
+                            DateAction = DateTime.UtcNow
+                        });
+                    }
+                }
+                else
+                {
+                    // Création ou mise à jour
+                    if (existing != null)
+                    {
+                        existing.Accorde = value.Value;
+                    }
+                    else
+                    {
+                        _context.UtilisateurPermissions.Add(new UtilisateurPermission
+                        {
+                            IdUtilisateur = id,
+                            IdPermission = permission.IdPermission,
+                            Accorde = value.Value,
+                            ModifiePar = currentUserId
+                        });
+                    }
+
+                    // Audit
+                    _context.AuditLogs.Add(new AuditLog
+                    {
+                        IdUtilisateur = currentUserId,
+                        Action = "USER_PERMISSION_UPDATED",
+                        Entite = "Utilisateur",
+                        IdEntite = id.ToString(),
+                        Details = $"{{\"permission\":\"{permCode}\", \"before\":{(before.HasValue ? before.Value.ToString().ToLower() : "null")}, \"after\":{value.Value.ToString().ToLower()}}}",
+                        DateAction = DateTime.UtcNow
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Permissions individuelles mises à jour.";
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Erreur : " + ex.Message;
+        }
+
+        return RedirectToAction(nameof(UserDetails), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetUserOverrides(int id)
+    {
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (id == currentUserId)
+        {
+            TempData["Error"] = "Vous ne pouvez pas réinitialiser vos propres permissions.";
+            return RedirectToAction(nameof(Users));
+        }
+
+        var overrides = await _context.UtilisateurPermissions
+            .Include(up => up.Permission)
+            .Where(up => up.IdUtilisateur == id)
+            .ToListAsync();
+
+        foreach (var o in overrides)
+        {
+            // Audit pour chaque suppression
+            _context.AuditLogs.Add(new AuditLog
+            {
+                IdUtilisateur = currentUserId,
+                Action = "USER_OVERRIDE_RESET",
+                Entite = "Utilisateur",
+                IdEntite = id.ToString(),
+                Details = $"{{\"permission\":\"{o.Permission.Code}\", \"before\":{o.Accorde.ToString().ToLower()}, \"after\":null}}",
+                DateAction = DateTime.UtcNow
+            });
+        }
+
+        if (overrides.Any())
+        {
+            _context.UtilisateurPermissions.RemoveRange(overrides);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Toutes les permissions individuelles ont été réinitialisées.";
+        }
+
+        return RedirectToAction(nameof(UserDetails), new { id });
     }
 }
