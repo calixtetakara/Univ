@@ -6,53 +6,47 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Espace Étudiant</title>
+    <title>@ViewData["Title"] - UnivSystem</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-dark bg-primary border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="Student" asp-controller="Dashboard" asp-action="Index">UnivSystem - Étudiant</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <!-- Lien Mon dossier (toujours visible) -->
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="Student" asp-controller="Dashboard" asp-action="Index">Mon dossier</a>
-                        </li>
-
-                        <!-- Lien Emploi du temps (visible si validé ou a des inscriptions antérieures) -->
-                        @if (ViewData["CanSeeEmploiDuTemps"] as bool? == true)
-                        {
+        <!-- Barre de navigation principale -->
+        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("etudiant"))
+        {
+            <!-- Menu spécial Étudiant -->
+            <nav class="navbar navbar-expand-sm navbar-dark bg-primary border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="Student" asp-controller="Dashboard" asp-action="Index">UnivSystem - Étudiant</a>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
                             <li class="nav-item">
-                                <a class="nav-link text-white" asp-area="Student" asp-controller="EmploiDuTemps" asp-action="Index">Emploi du temps</a>
+                                <a class="nav-link text-white" asp-area="Student" asp-controller="Dashboard" asp-action="Index">Mon dossier</a>
                             </li>
-                        }
-
-                        <!-- Lien Historique (visible si plusieurs inscriptions) -->
-                        @if (ViewData["HasHistorique"] as bool? == true)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-white" asp-area="Student" asp-controller="Historique" asp-action="Index">Historique</a>
-                            </li>
-                        }
-
-                        <!-- Lien Paiement (visible si validé et permission accordée) -->
-                        @if (ViewData["CanPay"] as bool? == true)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-white" asp-area="Student" asp-controller="Payment" asp-action="Index">Paiement</a>
-                            </li>
-                        }
-                    </ul>
-                    <partial name="_LoginPartial" />
+                        </ul>
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        }
+        else
+        {
+            <!-- Menu public / autres rôles -->
+            <nav class="navbar navbar-expand-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">UnivSystem</a>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Accueil</a>
+                            </li>
+                        </ul>
+                        <partial name="_LoginPartial" />
+                    </div>
+                </div>
+            </nav>
+        }
     </header>
 
     <div class="container">
@@ -60,12 +54,6 @@
             @RenderBody()
         </main>
     </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - UnivSystem - Espace Étudiant
-        </div>
-    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

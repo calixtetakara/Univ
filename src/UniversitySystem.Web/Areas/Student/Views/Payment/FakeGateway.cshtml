@@ -14,7 +14,9 @@
                 <p>Vous allez simuler un paiement réussi pour la référence :</p>
                 <p><code>@reference</code></p>
                 
-                <form asp-action="ProcessFakePayment" method="post">
+                <!-- URL en dur pour éviter les conflits de routage -->
+                <form action="/Student/Payment/ProcessFakePayment" method="post">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="reference" value="@reference" />
                     <button type="submit" class="btn btn-success btn-lg w-100">Simuler le paiement réussi</button>
                 </form>

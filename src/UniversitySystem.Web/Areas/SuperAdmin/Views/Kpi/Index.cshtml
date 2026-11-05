@@ -1,3 +1,121 @@
-@{ ViewData["Title"] = "KPI"; }
-<h2>Indicateurs de performance</h2>
-<p>Graphique des effectifs et compteur CA (M6-08, M6-09).</p>
+@{
+    ViewData["Title"] = "KPI";
+    var labels = ViewBag.Labels as List<string> ?? new List<string>();
+    var values = ViewBag.Values as List<int> ?? new List<int>();
+    var annee = ViewBag.Annee as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Indicateurs de Performance</h2>
+    <form method="get" class="d-flex">
+        <input type="text" name="annee" value="@annee" class="form-control me-2" placeholder="2026-2027" />
+        <button type="submit" class="btn btn-primary">Filtrer</button>
+    </form>
+</div>
+
+<div class="row">
+    <!-- Graphique des effectifs -->
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Effectifs par faculté (@annee)</h5>
+            </div>
+            <div class="card-body">
+                @if (!labels.Any())
+                {
+                    <p class="text-muted text-center py-5">Aucun étudiant validé pour cette année.</p>
+                }
+                else
+                {
+                    <canvas id="effectifsChart" style="max-height: 400px;"></canvas>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Compteur CA -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Chiffre d'affaires</h5>
+                <span class="badge bg-light text-success">Temps réel</span>
+            </div>
+            <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 200px;">
+                <h3 id="caTotal" class="text-success display-5">Chargement...</h3>
+                <small class="text-muted mt-2" id="lastUpdate">Dernière mise à jour : --</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // --- 1. Graphique des effectifs (M6-08) ---
+            const labels = @Html.Raw(Json.Serialize(labels));
+            const values = @Html.Raw(Json.Serialize(values));
+
+            if (labels.length > 0) {
+                const ctx = document.getElementById('effectifsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Étudiants validés',
+                            data: values,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- 2. Compteur CA (M6-09) ---
+            const caElement = document.getElementById('caTotal');
+            const lastUpdateElement = document.getElementById('lastUpdate');
+
+            async function fetchCa() {
+                try {
+                    const response = await fetch('/SuperAdmin/Kpi/GetCa');
+                    if (!response.ok) throw new Error('Erreur réseau');
+                    
+                    const data = await response.json();
+                    
+                    // Formatage FCFA (ex: 1 234 567 FCFA)
+                    const formatted = new Intl.NumberFormat('fr-FR', { style: 'decimal' }).format(data.total);
+                    caElement.textContent = `${formatted} ${data.devise}`;
+                    
+                    // Mise à jour de l'heure
+                    const now = new Date();
+                    lastUpdateElement.textContent = `Dernière mise à jour : ${now.toLocaleTimeString('fr-FR')}`;
+                } catch (error) {
+                    console.error('Erreur lors de la récupération du CA:', error);
+                    caElement.innerHTML = `<span class="text-danger fs-6">Erreur de chargement</span>`;
+                }
+            }
+
+            // Premier appel immédiat
+            fetchCa();
+
+            // Polling toutes les 30 secondes
+            setInterval(fetchCa, 30000);
+        });
+    </script>
+}

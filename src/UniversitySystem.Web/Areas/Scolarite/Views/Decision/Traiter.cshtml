@@ -1,4 +1,6 @@
 @using UniversitySystem.Domain.Enums
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService AuthorizationService
 @model UniversitySystem.Web.Models.DecisionTraiterViewModel
 
 @{
@@ -60,8 +62,8 @@
             </div>
         </div>
 
-        <!-- Boutons d'action -->
-        @if (User.HasClaim("Permission", "DOSSIER_TRAITER") || User.IsInRole("superadmin"))
+        <!-- Boutons d'action (CORRIGÉS avec IAuthorizationService) -->
+        @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:DOSSIER_TRAITER")).Succeeded)
         {
             <div class="d-grid gap-2">
                 <form asp-action="Approuver" asp-route-id="@Model.Etudiant.IdEtudiant" method="post">

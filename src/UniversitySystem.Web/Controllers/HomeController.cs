@@ -7,10 +7,6 @@ using UniversitySystem.Web.Models;
 
 namespace UniversitySystem.Web.Controllers;
 
-/// <summary>
-/// Contrôleur de la page d'accueil (Écran 0).
-/// Accessible à tous (visiteurs non authentifiés compris).
-/// </summary>
 public class HomeController : Controller
 {
     private readonly AppDbContext _context;
@@ -20,15 +16,32 @@ public class HomeController : Controller
         _context = context;
     }
 
-    /// <summary>
-    /// Affiche la page d'accueil publique avec les dates d'inscription dynamiques.
-    /// </summary>
     [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
+        // 1. Si l'utilisateur est connecté, on le redirige vers son espace
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            if (User.IsInRole("superadmin"))
+                return RedirectToAction("Index", "Home", new { area = "SuperAdmin" });
+
+            if (User.IsInRole("scolarite"))
+                return RedirectToAction("Index", "Home", new { area = "Scolarite" });
+
+            if (User.IsInRole("pedagogie"))
+                return RedirectToAction("Index", "Home", new { area = "Pedagogie" });
+
+            if (User.IsInRole("enseignant"))
+                return RedirectToAction("Index", "Dashboard", new { area = "Enseignant" });
+
+            // Si c'est un étudiant, on le redirige vers son dashboard
+            if (User.IsInRole("etudiant"))
+                return RedirectToAction("Index", "Dashboard", new { area = "Student" });
+        }
+
+        // 2. Si non connecté, on affiche la page d'accueil publique
         var anneeCourante = $"{DateTime.UtcNow.Year}-{DateTime.UtcNow.Year + 1}";
 
-        // On récupère les paramètres de calendrier depuis la base
         var parametres = await _context.ParametresCalendrier
             .AsNoTracking()
             .Where(p => p.AnneeAcademique == anneeCourante)
@@ -36,7 +49,6 @@ public class HomeController : Controller
 
         var vm = new HomeViewModel();
 
-        // Extraction des dates (si elles existent)
         var dateLicenceDebut = parametres.FirstOrDefault(p => p.Cle == "DATE_DEBUT_INSCRIPTION_LICENCE")?.Valeur;
         var dateLicenceFin = parametres.FirstOrDefault(p => p.Cle == "DATE_FIN_INSCRIPTION_LICENCE")?.Valeur;
         var dateMasterDebut = parametres.FirstOrDefault(p => p.Cle == "DATE_DEBUT_INSCRIPTION_MASTER")?.Valeur;

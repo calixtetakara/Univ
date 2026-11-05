@@ -12,12 +12,15 @@
 </head>
 <body>
     <header>
-        <!-- Barre de navigation noire pour différencier le SuperAdmin -->
         <nav class="navbar navbar-expand-sm navbar-dark bg-black border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="SuperAdmin" asp-controller="Home" asp-action="Index">UnivSystem - Super-Admin</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+                        <!-- Liens SuperAdmin -->
                         @if ((await AuthorizationService.AuthorizeAsync(User, "Permission:PERMISSIONS_GERER")).Succeeded)
                         {
                             <li class="nav-item">
@@ -39,6 +42,17 @@
                                 <a class="nav-link text-white" asp-area="SuperAdmin" asp-controller="Kpi" asp-action="Index">KPI</a>
                             </li>
                         }
+
+                        <!-- Menu déroulant "Espaces" (Scolarité et Pédagogie uniquement) -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-warning fw-bold" href="#" id="spacesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Espaces
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="spacesDropdown">
+                                <li><a class="dropdown-item" href="/Scolarite">Espace Scolarité</a></li>
+                                <li><a class="dropdown-item" href="/Pedagogie">Espace Pédagogie</a></li>
+                            </ul>
+                        </li>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
