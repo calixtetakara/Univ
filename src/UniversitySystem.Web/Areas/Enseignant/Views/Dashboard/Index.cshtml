@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Mon planning";
+    var programmations = ViewBag.Programmations as List<UniversitySystem.Domain.Entities.Programmation> ?? new List<UniversitySystem.Domain.Entities.Programmation>();
+    var effectifs = ViewBag.Effectifs as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var volumeTotal = (double)ViewBag.VolumeHoraireTotal;
+    var annee = ViewBag.Annee as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Mon planning</h2>
+    <span class="badge bg-primary fs-6">Année @annee</span>
+</div>
+
+<div class="alert alert-info">
+    <strong>Volume horaire total :</strong> @volumeTotal.ToString("0.00") heures
+</div>
+
+@if (!programmations.Any())
+{
+    <div class="alert alert-warning">Aucune intervention planifiée pour cette année.</div>
+}
+else
+{
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Jour</th>
+                <th>Horaire</th>
+                <th>Faculté</th>
+                <th>Filière</th>
+                <th>UE</th>
+                <th>Salle</th>
+                <th>Effectif</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in programmations)
+            {
+                var effectif = effectifs.ContainsKey(p.IdFiliere) ? effectifs[p.IdFiliere] : 0;
+                <tr>
+                    <td>@p.JourSemaine</td>
+                    <td>@p.HeureDebut.ToString(@"hh\:mm") - @p.HeureFin.ToString(@"hh\:mm")</td>
+                    <td>@p.Filiere.Faculte?.NomFaculte</td>
+                    <td>@p.Filiere.NomFiliere</td>
+                    <td>@p.Ue.Code</td>
+                    <td>@p.Salle.Code</td>
+                    <td>@effectif</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

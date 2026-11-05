@@ -76,13 +76,12 @@ public class TeacherController : Controller
             _context.Utilisateurs.Add(utilisateur);
             await _context.SaveChangesAsync();
 
-            // 4. Création de l'enseignant (avec matricule temporaire)
-            var enseignant = new Enseignant
+            // 4. Création de l'enseignant (avec le nom complet pour éviter le conflit de namespace)
+            var enseignant = new UniversitySystem.Domain.Entities.Enseignant
             {
                 IdUtilisateur = utilisateur.IdUtilisateur,
                 Specialite = model.Specialite,
                 Statut = StatutEnseignant.Actif,
-                // AJOUT : Matricule temporaire car la colonne est NOT NULL en base
                 Matricule = $"ENS-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}"
             };
             _context.Enseignants.Add(enseignant);
@@ -106,7 +105,6 @@ public class TeacherController : Controller
         }
         catch (Exception ex)
         {
-            // Afficher l'exception interne pour voir la vraie erreur SQL
             var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
             ModelState.AddModelError("", "Erreur : " + ex.Message + (string.IsNullOrEmpty(innerMessage) ? "" : " | Détails : " + innerMessage));
             return View(model);
