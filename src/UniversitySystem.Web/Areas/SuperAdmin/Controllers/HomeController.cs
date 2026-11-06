@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using UniversitySystem.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
+using UniversitySystem.Infrastructure.Persistence;
 
 namespace UniversitySystem.Web.Areas.SuperAdmin.Controllers;
 
@@ -9,30 +9,36 @@ namespace UniversitySystem.Web.Areas.SuperAdmin.Controllers;
 [Authorize(Roles = "superadmin")]
 public class HomeController : Controller
 {
-    private readonly IPermissionService _permissionService;
+    private readonly AppDbContext _context;
 
-    public HomeController(IPermissionService permissionService)
+    public HomeController(AppDbContext context)
     {
-        _permissionService = permissionService;
+        _context = context;
     }
 
     public async Task<IActionResult> Index()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
-            return RedirectToAction("Login", "Account", new { area = "" });
+        // 1. Compter les étudiants validés
+        var totalEtudiants = await _context.Etudiants
+            .CountAsync(e => e.StatutDossier == Domain.Enums.StatutInscription.Validee);
 
-        // Redirection selon la 1ère permission accordée
-        if (await _permissionService.HasPermissionAsync(userId, "PERMISSIONS_GERER"))
-            return RedirectToAction("Roles", "Permissions");
+        // 2. Compter les enseignants
+        var totalEnseignants = await _context.Enseignants.CountAsync();
 
-        if (await _permissionService.HasPermissionAsync(userId, "FINANCES_LIRE"))
-            return RedirectToAction("Index", "Finances");
+        // 3. Compter les paiements réussis et calculer le CA
+        var totalPaiements = await _context.Paiements
+            .Where(p => p.Statut == Domain.Enums.StatutPaiement.Valide)
+            .SumAsync(p => p.Montant);
 
-        if (await _permissionService.HasPermissionAsync(userId, "KPI_LIRE"))
-            return RedirectToAction("Index", "Kpi");
+        // 4. Compter les dossiers en attente
+        var dossiersEnAttente = await _context.Etudiants
+            .CountAsync(e => e.StatutDossier == Domain.Enums.StatutInscription.Brouillon);
 
-        // Aucun accès (théorique)
-        return RedirectToAction("AccessDenied", "Account", new { area = "" });
+        ViewBag.TotalEtudiants = totalEtudiants;
+        ViewBag.TotalEnseignants = totalEnseignants;
+        ViewBag.TotalPaiements = totalPaiements;
+        ViewBag.DossiersEnAttente = dossiersEnAttente;
+
+        return View();
     }
 }

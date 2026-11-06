@@ -26,10 +26,13 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
+        // Si l'utilisateur est DÉJÀ connecté, on le redirige vers l'accueil
         if (User.Identity?.IsAuthenticated == true)
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home", new { area = "" });
 
-        return View(new LoginViewModel { ReturnUrl = returnUrl });
+        // Puisque le formulaire est sur la page d'accueil, 
+        // on redirige automatiquement vers l'accueil.
+        return RedirectToAction("Index", "Home", new { area = "" });
     }
 
     // -------------------------------------------------------
@@ -41,7 +44,7 @@ public class AccountController : Controller
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid)
-            return View(model);
+            return RedirectToAction("Index", "Home", new { area = "" }); // Retour à l'accueil si erreur de validation
 
         var user = await _context.Utilisateurs
             .Include(u => u.Role)
@@ -50,15 +53,15 @@ public class AccountController : Controller
         // Utilisateur inexistant ou mot de passe incorrect
         if (user is null || !BCrypt.Net.BCrypt.Verify(model.Password, user.MotDePasseHash))
         {
-            ModelState.AddModelError(string.Empty, "Email ou mot de passe incorrect.");
-            return View(model);
+            TempData["Error"] = "Email ou mot de passe incorrect.";
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
 
         // Compte non actif
         if (user.Statut != StatutUtilisateur.Actif)
         {
-            ModelState.AddModelError(string.Empty, "Votre compte est désactivé ou suspendu.");
-            return View(model);
+            TempData["Error"] = "Votre compte est désactivé ou suspendu.";
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
 
         // Création des claims
@@ -69,7 +72,7 @@ public class AccountController : Controller
             new(ClaimTypes.GivenName, $"{user.Prenom} {user.Nom}"),
             new(ClaimTypes.Role, user.Role.Code),
             new("FullName", $"{user.Prenom} {user.Nom}"),
-            new("MustChangePassword", user.DoitChangerMotDePasse.ToString().ToLower()) // Ajout pour le middleware
+            new("MustChangePassword", user.DoitChangerMotDePasse.ToString().ToLower())
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -95,21 +98,27 @@ public class AccountController : Controller
         // Forcer le changement de mot de passe si nécessaire
         if (user.DoitChangerMotDePasse)
         {
-            // Si c'est un enseignant, on le redirige vers son Setup dédié (Area Enseignant)
             if (user.Role.Code == "enseignant")
-            {
                 return RedirectToAction("Index", "Setup", new { area = "Enseignant" });
-            }
             
-            // Pour les autres (superadmin, etc.), on garde le changement générique
             return RedirectToAction(nameof(ChangePassword));
         }
 
-        // Redirection
+        // Si un ReturnUrl est fourni
         if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
             return Redirect(model.ReturnUrl);
 
-        return RedirectToAction("Index", "Home");
+        // Redirection selon le rôle
+        return user.Role.Code switch
+        {
+            "superadmin" => RedirectToAction("Index", "Home", new { area = "SuperAdmin" }),
+            "scolarite" => RedirectToAction("Index", "Home", new { area = "Scolarite" }),
+            "pedagogie" => RedirectToAction("Index", "Home", new { area = "Pedagogie" }),
+            "enseignant" => RedirectToAction("Index", "Dashboard", new { area = "Enseignant" }),
+            "etudiant" => RedirectToAction("Index", "Dashboard", new { area = "Student" }),
+            "directeur" => RedirectToAction("Index", "Dashboard", new { area = "Directeur" }),
+            _ => RedirectToAction("Index", "Home", new { area = "" })
+        };
     }
 
     // -------------------------------------------------------
@@ -123,10 +132,8 @@ public class AccountController : Controller
         var user = await _context.Utilisateurs.FindAsync(userId);
 
         if (user is null)
-            return RedirectToAction(nameof(Login));
+            return RedirectToAction("Index", "Home", new { area = "" });
 
-        // Si l'utilisateur n'est pas obligé de changer son mot de passe,
-        // on peut quand même l'autoriser (changement volontaire)
         ViewBag.IsForced = user.DoitChangerMotDePasse;
 
         return View();
@@ -147,7 +154,7 @@ public class AccountController : Controller
         var user = await _context.Utilisateurs.FindAsync(userId);
 
         if (user is null)
-            return RedirectToAction(nameof(Login));
+            return RedirectToAction("Index", "Home", new { area = "" });
 
         if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.MotDePasseHash))
         {
@@ -162,7 +169,7 @@ public class AccountController : Controller
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Mot de passe modifié avec succès.";
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction("Index", "Home", new { area = "" });
     }
 
     // -------------------------------------------------------
@@ -174,7 +181,18 @@ public class AccountController : Controller
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return RedirectToAction(nameof(Login));
+        return RedirectToAction("Index", "Home", new { area = "" });
+    }
+
+    // -------------------------------------------------------
+    // GET: /Account/ForceLogout (MÉTHODE DE SECOURS INFAILLIBLE)
+    // -------------------------------------------------------
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<IActionResult> ForceLogout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Index", "Home", new { area = "" });
     }
 
     // -------------------------------------------------------

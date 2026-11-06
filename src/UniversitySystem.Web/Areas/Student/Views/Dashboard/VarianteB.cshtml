@@ -2,35 +2,59 @@
 
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Mon dossier";
+    ViewData["Title"] = "Mon dossier - Validé";
 }
 
-<div class="alert alert-success">
-    <h4 class="alert-heading">Félicitations, votre dossier est validé !</h4>
-    <p>Votre matricule est : <strong class="fs-4">@Model.Matricule</strong></p>
-</div>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card shadow-sm mb-3">
-            <div class="card-header bg-primary text-white">Identité</div>
-            <div class="card-body">
-                <p><strong>Nom :</strong> @Model.Utilisateur.Nom @Model.Utilisateur.Prenom</p>
-                <p><strong>Matricule :</strong> @Model.Matricule</p>
-                <p><strong>Faculté :</strong> @Model.Filiere?.Faculte?.NomFaculte</p>
-                <p><strong>Filière :</strong> @Model.Filiere?.NomFiliere</p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Alerte de succès -->
+            <div class="alert alert-success border-0 shadow-sm rounded-4 p-4 mb-4 d-flex align-items-start">
+                <div class="me-3 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-check-circle-fill text-success" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="alert-heading fw-bold mb-2">Félicitations, votre dossier est validé !</h4>
+                    <p class="mb-0 fs-5">Votre matricule est : <strong class="text-dark">@Model.Matricule</strong></p>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card shadow-sm mb-3">
-            <div class="card-header bg-success text-white">Paiement</div>
-            <div class="card-body text-center">
-                <p class="mb-4">Vous pouvez maintenant procéder au paiement de vos frais de scolarité.</p>
-                <!-- URL en dur pour être sûr que ça fonctionne -->
-                <a href="/Student/Payment/Index" class="btn btn-success btn-lg w-100">
-                    Procéder au paiement
-                </a>
+
+            <!-- Carte d'information -->
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <h5 class="mb-4 text-primary fw-bold">Informations du dossier</h5>
+                    
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent">
+                            <span class="text-muted fw-semibold">Nom complet</span>
+                            <span class="fw-bold fs-5 text-dark">@Model.Utilisateur.Nom @Model.Utilisateur.Prenom</span>
+                        </li>
+                        <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent">
+                            <span class="text-muted fw-semibold">Matricule</span>
+                            <span class="fw-bold text-dark">@Model.Matricule</span>
+                        </li>
+                        <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent">
+                            <span class="text-muted fw-semibold">Faculté</span>
+                            <span class="fw-bold text-dark">@Model.Filiere?.Faculte?.NomFaculte</span>
+                        </li>
+                        <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent border-bottom-0">
+                            <span class="text-muted fw-semibold">Filière</span>
+                            <span class="fw-bold text-dark">@Model.Filiere?.NomFiliere</span>
+                        </li>
+                    </ul>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="text-muted mb-3">Vous pouvez maintenant procéder au paiement de vos frais de scolarité.</p>
+                        <a href="/Student/Payment/Index" class="btn btn-success btn-lg w-100 rounded-pill py-3 fw-bold shadow-sm">
+                            <i class="bi bi-credit-card me-2"></i> Procéder au paiement
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

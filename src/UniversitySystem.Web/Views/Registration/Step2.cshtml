@@ -7,117 +7,139 @@
 }
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Bachelier - Parcours & Notes</h2>
-
-    <!-- Indicateur d'étapes (Stepper) -->
-    <div class="d-flex justify-content-center mb-4">
-        <div class="text-success me-3">1. Identité ✔</div>
-        <div class="text-primary fw-bold me-3">2. Parcours & Notes</div>
-        <div class="text-muted">3. Pièces Jointes</div>
-    </div>
-
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
+        <div class="col-lg-8">
+            <!-- Titre -->
+            <div class="text-center mb-5">
+                <h1 class="fw-bold text-primary">Bachelier - Parcours & Notes</h1>
+                <p class="text-muted">Choisissez votre filière et saisissez vos notes du BAC.</p>
+            </div>
+
+            <!-- Stepper (Conforme au Step 1) -->
+            <div class="d-flex justify-content-center mb-5">
+                <!-- Étape 1 : Validée (Verte) -->
+                <div class="step completed">
+                    <span class="step-circle">1</span>
+                    <span class="step-label">Identité</span>
+                </div>
+                
+                <div class="step-line"></div>
+                
+                <!-- Étape 2 : Active (Bleue) -->
+                <div class="step active">
+                    <span class="step-circle">2</span>
+                    <span class="step-label">Parcours</span>
+                </div>
+                
+                <div class="step-line"></div>
+                
+                <!-- Étape 3 : À venir (Grise) -->
+                <div class="step">
+                    <span class="step-circle">3</span>
+                    <span class="step-label">Documents</span>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-5">
                     <form asp-action="Step2" method="post">
                         @Html.AntiForgeryToken()
                         
                         <!-- Affichage des erreurs globales -->
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                        <!-- LIGNE 1 : Niveau + Faculté + Filière -->
-                        <div class="row mb-3">
+                        <!-- SECTION 1 : Orientation -->
+                        <h5 class="mb-4 text-primary fw-bold">Choix d'orientation</h5>
+                        <div class="row mb-4">
                             <!-- Choix du Niveau -->
                             <div class="col-md-4">
-                                <label asp-for="Niveau" class="form-label fw-bold"></label>
-                                <select asp-for="Niveau" class="form-select">
+                                <label asp-for="Niveau" class="form-label fw-semibold">Niveau d'études</label>
+                                <select asp-for="Niveau" class="form-select form-select-lg rounded-3">
                                     <option value="Licence">Licence</option>
                                     <option value="Master">Master</option>
                                 </select>
-                                <span asp-validation-for="Niveau" class="text-danger"></span>
+                                <span asp-validation-for="Niveau" class="text-danger small"></span>
                             </div>
 
                             <!-- Choix de la Faculté (déclenche l'AJAX) -->
                             <div class="col-md-4">
-                                <label asp-for="CodeFaculte" class="form-label fw-bold"></label>
-                                <select asp-for="CodeFaculte" class="form-select" id="faculteSelect">
-                                    <option value="">-- Choisir une faculté --</option>
+                                <label asp-for="CodeFaculte" class="form-label fw-semibold">Faculté</label>
+                                <select asp-for="CodeFaculte" class="form-select form-select-lg rounded-3" id="faculteSelect">
+                                    <option value="">-- Choisir --</option>
                                     @foreach (var f in facultes)
                                     {
                                         <option value="@f.CodeFaculte">@f.NomFaculte</option>
                                     }
                                 </select>
-                                <span asp-validation-for="CodeFaculte" class="text-danger"></span>
+                                <span asp-validation-for="CodeFaculte" class="text-danger small"></span>
                             </div>
 
                             <!-- Choix de la Filière (rempli par JS) -->
                             <div class="col-md-4">
-                                <label asp-for="CodeFiliere" class="form-label fw-bold"></label>
-                                <select asp-for="CodeFiliere" class="form-select" id="filiereSelect">
-                                    <option value="">-- Choisir une faculté d'abord --</option>
+                                <label asp-for="CodeFiliere" class="form-label fw-semibold">Filière</label>
+                                <select asp-for="CodeFiliere" class="form-select form-select-lg rounded-3" id="filiereSelect">
+                                    <option value="">-- Choisir faculté --</option>
                                 </select>
-                                <span asp-validation-for="CodeFiliere" class="text-danger"></span>
+                                <span asp-validation-for="CodeFiliere" class="text-danger small"></span>
                             </div>
                         </div>
 
-                        <!-- SECTION DES NOTES (cachée par défaut) -->
+                        <hr class="my-4">
+
+                        <!-- SECTION 2 : Notes (cachée par défaut) -->
                         <div id="notesSection" style="display: none;">
-                            <hr />
-                            <h5 class="mb-3">Notes du BAC</h5>
+                            <h5 class="mb-4 text-primary fw-bold">Notes du BAC</h5>
+                            <p class="text-muted small mb-4">Saisissez vos notes sur 20 pour chaque matière.</p>
                             
                             <!-- Bloc Scientifique -->
-                            <div id="notesScientifiques" style="display: none;" class="row">
+                            <div id="notesScientifiques" style="display: none;" class="row mb-4">
                                 <div class="col-md-4 mb-3">
-                                    <label asp-for="NoteMaths" class="form-label"></label>
-                                    <input asp-for="NoteMaths" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
-                                    <span asp-validation-for="NoteMaths" class="text-danger"></span>
+                                    <label asp-for="NoteMaths" class="form-label fw-semibold">Mathématiques</label>
+                                    <input asp-for="NoteMaths" type="number" step="0.01" class="form-control form-control-lg rounded-3" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteMaths" class="text-danger small"></span>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label asp-for="NoteSvt" class="form-label"></label>
-                                    <input asp-for="NoteSvt" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
-                                    <span asp-validation-for="NoteSvt" class="text-danger"></span>
+                                    <label asp-for="NoteSvt" class="form-label fw-semibold">SVT / Biologie</label>
+                                    <input asp-for="NoteSvt" type="number" step="0.01" class="form-control form-control-lg rounded-3" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteSvt" class="text-danger small"></span>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label asp-for="NotePhysique" class="form-label"></label>
-                                    <input asp-for="NotePhysique" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
-                                    <span asp-validation-for="NotePhysique" class="text-danger"></span>
+                                    <label asp-for="NotePhysique" class="form-label fw-semibold">Physique-Chimie</label>
+                                    <input asp-for="NotePhysique" type="number" step="0.01" class="form-control form-control-lg rounded-3" placeholder="0 à 20" />
+                                    <span asp-validation-for="NotePhysique" class="text-danger small"></span>
                                 </div>
                             </div>
 
                             <!-- Bloc Littéraire -->
-                            <div id="notesLitteraires" style="display: none;" class="row">
+                            <div id="notesLitteraires" style="display: none;" class="row mb-4">
                                 <div class="col-md-3 mb-3">
-                                    <label asp-for="NoteFrancais" class="form-label"></label>
-                                    <input asp-for="NoteFrancais" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
-                                    <span asp-validation-for="NoteFrancais" class="text-danger"></span>
+                                    <label asp-for="NoteFrancais" class="form-label fw-semibold">Français</label>
+                                    <input asp-for="NoteFrancais" type="number" step="0.01" class="form-control form-control-lg rounded-3" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteFrancais" class="text-danger small"></span>
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    <label asp-for="NoteHistoireGeo" class="form-label"></label>
-                                    <input asp-for="NoteHistoireGeo" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
-                                    <span asp-validation-for="NoteHistoireGeo" class="text-danger"></span>
+                                    <label asp-for="NoteHistoireGeo" class="form-label fw-semibold">Histoire-Géo</label>
+                                    <input asp-for="NoteHistoireGeo" type="number" step="0.01" class="form-control form-control-lg rounded-3" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteHistoireGeo" class="text-danger small"></span>
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    <label asp-for="NotePhilo" class="form-label"></label>
-                                    <input asp-for="NotePhilo" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
-                                    <span asp-validation-for="NotePhilo" class="text-danger"></span>
+                                    <label asp-for="NotePhilo" class="form-label fw-semibold">Philosophie</label>
+                                    <input asp-for="NotePhilo" type="number" step="0.01" class="form-control form-control-lg rounded-3" placeholder="0 à 20" />
+                                    <span asp-validation-for="NotePhilo" class="text-danger small"></span>
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    <label asp-for="NoteAnglais" class="form-label"></label>
-                                    <input asp-for="NoteAnglais" type="number" step="0.01" class="form-control" placeholder="0 à 20" />
-                                    <span asp-validation-for="NoteAnglais" class="text-danger"></span>
+                                    <label asp-for="NoteAnglais" class="form-label fw-semibold">Anglais</label>
+                                    <input asp-for="NoteAnglais" type="number" step="0.01" class="form-control form-control-lg rounded-3" placeholder="0 à 20" />
+                                    <span asp-validation-for="NoteAnglais" class="text-danger small"></span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- BOUTONS -->
-                        <div class="d-flex justify-content-between mt-4">
-                            <button type="submit" formaction="@Url.Action("Back", new { currentStep = "Step2" })" class="btn btn-outline-secondary">
-                                ← Retour
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                Suivant →
-                            </button>
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 fw-semibold">Suivant →</button>
+                            <button type="submit" formaction="@Url.Action("Back", new { currentStep = "Step2" })" class="btn btn-outline-secondary btn-lg rounded-pill py-3">← Retour</button>
                         </div>
                     </form>
                 </div>

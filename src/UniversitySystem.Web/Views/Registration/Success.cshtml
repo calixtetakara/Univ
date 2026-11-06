@@ -2,21 +2,48 @@
     ViewData["Title"] = "Inscription réussie";
 }
 
-<!-- Modale Bootstrap qui s'affiche automatiquement au chargement de la page -->
-<div class="modal fade show" id="successModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);" aria-modal="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">✅ Inscription réussie</h5>
+<div class="success-bg">
+    <div class="card border-0 shadow-lg rounded-4" style="max-width: 500px; width: 100%;">
+        <div class="card-body p-5 text-center">
+            
+            <!-- Icône animée -->
+            <div class="success-checkmark mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
             </div>
-            <div class="modal-body text-center p-4">
-                <p class="lead">
-                    Inscription réussie. Veuillez vous reconnecter sous 48 heures pour voir si votre inscription sera validée ou pas après étude du dossier.
-                </p>
+
+            <!-- Titre -->
+            <h2 class="fw-bold text-dark mb-3">Dossier soumis avec succès !</h2>
+            
+            <!-- Message -->
+            <p class="text-muted mb-4 fs-5">
+                Votre inscription a bien été enregistrée. Veuillez vous reconnecter sous <strong>48 heures</strong> pour voir si votre dossier a été validé après étude par la scolarité.
+            </p>
+
+            <!-- Boîte d'information (rappel) -->
+            <div class="alert alert-info border-0 rounded-3 text-start mb-5">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <!-- Icône SVG info -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle-fill text-info" viewBox="0 0 16 16">
+                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong>Prochaine étape :</strong><br>
+                        Connectez-vous avec l'adresse email fournie lors de l'inscription pour suivre l'état de votre dossier.
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer justify-content-center">
-                <a href="/" class="btn btn-primary btn-lg">OK</a>
+
+            <!-- Bouton de retour -->
+            <div class="d-grid">
+                <a href="/" class="btn btn-primary btn-lg rounded-pill py-3 fw-semibold">
+                    Retour à l'accueil
+                </a>
             </div>
+            
         </div>
     </div>
 </div>

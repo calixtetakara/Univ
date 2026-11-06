@@ -5,42 +5,76 @@
 }
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Bachelier - Pièces Jointes</h2>
-
-    <!-- Indicateur d'étapes -->
-    <div class="d-flex justify-content-center mb-4">
-        <div class="text-success me-3">1. Identité ✔</div>
-        <div class="text-success me-3">2. Parcours ✔</div>
-        <div class="text-primary fw-bold">3. Pièces Jointes</div>
-    </div>
-
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
+        <div class="col-lg-8">
+            <!-- Titre -->
+            <div class="text-center mb-5">
+                <h1 class="fw-bold text-primary">Bachelier - Pièces Jointes</h1>
+                <p class="text-muted">Veuillez téléverser les documents requis pour finaliser votre inscription.</p>
+            </div>
+
+            <!-- Stepper (Conforme aux étapes 1 et 2) -->
+            <div class="d-flex justify-content-center mb-5">
+                <!-- Étape 1 : Validée -->
+                <div class="step completed">
+                    <span class="step-circle">1</span>
+                    <span class="step-label">Identité</span>
+                </div>
+                
+                <div class="step-line"></div>
+                
+                <!-- Étape 2 : Validée -->
+                <div class="step completed">
+                    <span class="step-circle">2</span>
+                    <span class="step-label">Parcours</span>
+                </div>
+                
+                <div class="step-line"></div>
+                
+                <!-- Étape 3 : Active (Bleue) -->
+                <div class="step active">
+                    <span class="step-circle">3</span>
+                    <span class="step-label">Documents</span>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-5">
                     <!-- enctype="multipart/form-data" est INDISPENSABLE pour l'upload -->
                     <form asp-action="Step3" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- SECTION : Documents -->
+                        <h5 class="mb-4 text-primary fw-bold">Documents à fournir</h5>
+                        <p class="text-muted small mb-4">Formats acceptés : PDF, JPG ou PNG. Taille maximale : 2 Mo par fichier.</p>
 
                         <!-- Champ Relevé de notes -->
-                        <div class="mb-3">
-                            <label asp-for="ReleveBac" class="form-label"></label>
-                            <input asp-for="ReleveBac" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
-                            <span asp-validation-for="ReleveBac" class="text-danger"></span>
-                            <small class="text-muted">Format PDF, JPG ou PNG. Taille max : 2 Mo.</small>
+                        <div class="mb-4">
+                            <label asp-for="ReleveBac" class="form-label fw-semibold">Relevé de notes du BAC</label>
+                            <input asp-for="ReleveBac" type="file" class="form-control form-control-lg rounded-3" accept=".pdf,.jpg,.jpeg,.png" />
+                            <span asp-validation-for="ReleveBac" class="text-danger small"></span>
                         </div>
 
                         <!-- Champ Acte de naissance -->
-                        <div class="mb-3">
-                            <label asp-for="ActeNaissance" class="form-label"></label>
-                            <input asp-for="ActeNaissance" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
-                            <span asp-validation-for="ActeNaissance" class="text-danger"></span>
+                        <div class="mb-4">
+                            <label asp-for="ActeNaissance" class="form-label fw-semibold">Acte de naissance</label>
+                            <input asp-for="ActeNaissance" type="file" class="form-control form-control-lg rounded-3" accept=".pdf,.jpg,.jpeg,.png" />
+                            <span asp-validation-for="ActeNaissance" class="text-danger small"></span>
                         </div>
 
-                        <!-- Bouton de soumission -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-success btn-lg">Soumettre mon dossier</button>
+                        <hr class="my-4">
+
+                        <!-- Boutons d'action -->
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill py-3 fw-semibold">
+                                Soumettre mon dossier
+                            </button>
+                            <button type="submit" formaction="@Url.Action("Back", new { currentStep = "Step3" })" class="btn btn-outline-secondary btn-lg rounded-pill py-3">
+                                ← Retour
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -48,3 +82,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

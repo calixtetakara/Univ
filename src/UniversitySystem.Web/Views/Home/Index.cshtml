@@ -1,126 +1,152 @@
 ﻿@model UniversitySystem.Web.Models.HomeViewModel
-
 @{
     ViewData["Title"] = "Accueil";
 }
 
-<!-- 1. Section HERO -->
-<section class="bg-primary text-white text-center py-5 mb-4">
-    <div class="container">
-        <h1 class="display-4 fw-bold">Bienvenue à l'Université</h1>
-        <p class="lead">Votre avenir commence ici. Inscrivez-vous en ligne dès maintenant.</p>
+<!-- 1. HERO SECTION (Avec découpe en biais) -->
+<section class="hero-section text-white d-flex align-items-center" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); min-height: 60vh;">
+    <div class="container text-center py-5">
+        <h1 class="display-3 fw-bold mb-3 text-white">Bienvenue à l'Université</h1>
+        <p class="lead mb-5 fs-4 text-white">Votre avenir commence ici. Rejoignez une communauté d'excellence et d'innovation.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="#inscription" class="btn btn-light btn-lg px-4 py-2 fw-semibold rounded-pill">S'inscrire maintenant</a>
+            <a href="#login" class="btn btn-outline-light btn-lg px-4 py-2 fw-semibold rounded-pill">Se connecter</a>
+        </div>
     </div>
 </section>
 
-<div class="container">
-    <!-- 2. Section DATES IMPORTANTES -->
-    <section class="mb-5">
-        <h2 class="text-center mb-4">Dates Importantes</h2>
-        <div class="row justify-content-center">
+<!-- 2. DATES IMPORTANTES (Fond gris clair pour correspondre à la découpe) -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">Dates Importantes</h2>
+        <div class="row justify-content-center g-4">
             <!-- Carte Licence -->
-            <div class="col-md-5 mb-3">
-                <div class="card h-100 shadow-sm border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Inscriptions Licence</h5>
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+                    <div class="card-header bg-primary text-white text-center py-3 border-0">
+                        <h5 class="mb-0 fw-semibold">Inscriptions Licence</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body text-center p-4">
                         @if (Model.LicenceOuverte)
                         {
-                            <p class="text-success"><strong>Inscriptions ouvertes !</strong></p>
+                            <span class="badge bg-success mb-3 px-3 py-2 rounded-pill">Ouvertes</span>
                         }
                         else
                         {
-                            <p class="text-danger"><strong>Inscriptions fermées.</strong></p>
+                            <span class="badge bg-danger mb-3 px-3 py-2 rounded-pill">Fermées</span>
                         }
                         
                         @if (Model.DateLicenceDebut != null && Model.DateLicenceFin != null)
                         {
-                            <p class="mb-0">
-                                Du <strong>@Model.DateLicenceDebut.Value.ToString("dd/MM/yyyy")</strong> 
-                                au <strong>@Model.DateLicenceFin.Value.ToString("dd/MM/yyyy")</strong>
-                            </p>
+                            <p class="text-muted mb-1">Période d'inscription :</p>
+                            <h4 class="fw-bold text-dark">
+                                Du @Model.DateLicenceDebut.Value.ToString("dd/MM/yyyy") <br/>
+                                au @Model.DateLicenceFin.Value.ToString("dd/MM/yyyy")
+                            </h4>
                         }
                         else
                         {
-                            <p class="text-muted mb-0">Dates non configurées pour cette année.</p>
+                            <p class="text-muted">Dates non configurées.</p>
                         }
                     </div>
                 </div>
             </div>
 
             <!-- Carte Master -->
-            <div class="col-md-5 mb-3">
-                <div class="card h-100 shadow-sm border-success">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Inscriptions Master</h5>
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+                    <div class="card-header bg-success text-white text-center py-3 border-0">
+                        <h5 class="mb-0 fw-semibold">Inscriptions Master</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body text-center p-4">
                         @if (Model.MasterOuverte)
                         {
-                            <p class="text-success"><strong>Inscriptions ouvertes !</strong></p>
+                            <span class="badge bg-success mb-3 px-3 py-2 rounded-pill">Ouvertes</span>
                         }
                         else
                         {
-                            <p class="text-danger"><strong>Inscriptions fermées.</strong></p>
+                            <span class="badge bg-danger mb-3 px-3 py-2 rounded-pill">Fermées</span>
                         }
 
                         @if (Model.DateMasterDebut != null && Model.DateMasterFin != null)
                         {
-                            <p class="mb-0">
-                                Du <strong>@Model.DateMasterDebut.Value.ToString("dd/MM/yyyy")</strong> 
-                                au <strong>@Model.DateMasterFin.Value.ToString("dd/MM/yyyy")</strong>
-                            </p>
+                            <p class="text-muted mb-1">Période d'inscription :</p>
+                            <h4 class="fw-bold text-dark">
+                                Du @Model.DateMasterDebut.Value.ToString("dd/MM/yyyy") <br/>
+                                au @Model.DateMasterFin.Value.ToString("dd/MM/yyyy")
+                            </h4>
                         }
                         else
                         {
-                            <p class="text-muted mb-0">Dates non configurées pour cette année.</p>
+                            <p class="text-muted">Dates non configurées.</p>
                         }
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- 3. Section "Je n'ai pas de compte" (Nouveau Bachelier) -->
-    <section class="mb-5">
-        <h2 class="text-center mb-4">Je n'ai pas de compte</h2>
-        <div class="row justify-content-center">
-            <div class="col-md-8 text-center">
-                <div class="p-4 bg-light rounded shadow-sm">
-                    <h4>Nouveau Bachelier</h4>
-                    <p>Vous venez d'obtenir votre BAC et souhaitez vous inscrire pour la première fois.</p>
-                    <a href="/Registration/Step1" class="btn btn-primary btn-lg w-100">Commencer mon inscription</a>
+<!-- 3 & 4. INSCRIPTION ET CONNEXION CÔTE À CÔTE -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center g-4 align-items-stretch">
+            
+            <!-- Bloc "Nouveau Bachelier" -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-lg rounded-4 h-100 p-4" style="background: linear-gradient(145deg, #ffffff, #f8f9fa);">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <div class="mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-mortarboard-fill text-primary" viewBox="0 0 16 16">
+                                <path d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 0 .9l7.5 3.5a.5.5 0 0 0 .422 0l7.5-3.5a.5.5 0 0 0 0-.9l-7.5-3.5Z"/>
+                                <path d="M8 8.5a.5.5 0 0 1 .5.5v5.5a.5.5 0 0 1-1 0V9a.5.5 0 0 1 .5-.5Z"/>
+                                <path d="M3.5 7.5a.5.5 0 0 0-1 0v3.5a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5v-3.5a.5.5 0 0 0-1 0v3a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-3Z"/>
+                            </svg>
+                        </div>
+                        <h3 class="fw-bold mb-3">Nouveau Bachelier</h3>
+                        <p class="text-muted mb-4">Vous venez d'obtenir votre BAC et souhaitez vous inscrire pour la première fois.</p>
+                        <a href="/Registration/Step1" class="btn btn-primary btn-lg w-100 rounded-pill py-3 fw-semibold mt-auto">Commencer mon inscription</a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- 4. Section "J'ai déjà un compte" -->
-    <section class="mb-5">
-        <h2 class="text-center mb-4">J'ai déjà un compte</h2>
-        <div class="row justify-content-center">
+            <!-- Bloc "J'ai déjà un compte" -->
             <div class="col-md-6">
-                <div class="card shadow-sm">
-                    <div class="card-body">
+                <div class="card border-0 shadow-lg rounded-4 h-100">
+                    <div class="card-body p-4 d-flex flex-column justify-content-center">
+                        <h3 class="fw-bold text-center mb-4">J'ai déjà un compte</h3>
                         <form asp-controller="Account" asp-action="Login" method="post">
                             <div class="mb-3">
-                                <label for="email" class="form-label">Adresse email</label>
-                                <input type="email" class="form-control" id="email" name="Email" required placeholder="nom@exemple.com">
+                                <label for="email" class="form-label fw-semibold">Adresse email</label>
+                                <input type="email" class="form-control form-control-lg rounded-3" id="email" name="Email" required placeholder="nom@exemple.com">
                             </div>
                             <div class="mb-3">
-                                <label for="password" class="form-label">Mot de passe</label>
-                                <input type="password" class="form-control" id="password" name="Password" required>
+                                <label for="password" class="form-label fw-semibold">Mot de passe</label>
+                                <input type="password" class="form-control form-control-lg rounded-3" id="password" name="Password" required>
                             </div>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-success btn-lg">Se connecter</button>
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success btn-lg rounded-pill py-3 fw-semibold">Se connecter</button>
                             </div>
                             <div class="text-center mt-3">
-                                <a href="/Identity/ForgotPassword">Mot de passe oublié ?</a>
+                                <a href="/forgot-password" class="text-decoration-none">Mot de passe oublié ?</a>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+
         </div>
-    </section>
-</div>
+    </div>
+</section>
+
+<!-- 5. FOOTER -->
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="mb-1">&copy; @DateTime.UtcNow.Year - Université. Tous droits réservés.</p>
+        <p class="mb-0 text-muted small">
+            <a href="#" class="text-light text-decoration-none me-3">Mentions légales</a>
+            <a href="#" class="text-light text-decoration-none me-3">Politique de confidentialité</a>
+            <a href="#" class="text-light text-decoration-none">Contact</a>
+        </p>
+    </div>
+</footer>

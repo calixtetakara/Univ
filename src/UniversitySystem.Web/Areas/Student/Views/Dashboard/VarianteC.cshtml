@@ -2,25 +2,62 @@
 
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Mon dossier";
+    ViewData["Title"] = "Mon dossier - Rejeté";
 }
 
-<div class="alert alert-danger">
-    <h4 class="alert-heading">Votre dossier a été rejeté</h4>
-    <p><strong>Motif :</strong> @Model.MotifRejet</p>
-    <hr />
-    <p>Veuillez corriger votre dossier et le resoumettre.</p>
-</div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Alerte de rejet moderne -->
+            <div class="alert alert-danger border-0 shadow-sm rounded-4 p-4 mb-4 d-flex align-items-start">
+                <div class="me-3 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-exclamation-triangle-fill text-danger" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="alert-heading fw-bold mb-2">Votre dossier a été rejeté</h4>
+                    <p class="mb-3 fs-5">
+                        <strong>Motif :</strong> <span class="badge bg-danger fs-6">@Model.MotifRejet</span>
+                    </p>
+                    <hr>
+                    <p class="mb-0">Veuillez corriger votre dossier et le resoumettre pour qu'il soit étudié à nouveau.</p>
+                </div>
+            </div>
 
-<div class="card shadow-sm mb-3">
-    <div class="card-body">
-        <p><strong>Nom :</strong> @Model.Utilisateur.Nom @Model.Utilisateur.Prenom</p>
-        <p><strong>Faculté :</strong> @Model.Filiere?.Faculte?.NomFaculte</p>
-        <p><strong>Filière :</strong> @Model.Filiere?.NomFiliere</p>
-        <div class="d-grid gap-2 mt-3">
-            <a asp-area="Student" asp-controller="Correction" asp-action="Index" class="btn btn-warning">
-                Corriger et resoumettre mon dossier
-            </a>
+            <!-- Carte d'information de l'étudiant -->
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <h5 class="mb-4 text-primary fw-bold">Informations du dossier</h5>
+                    
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent">
+                            <span class="text-muted fw-semibold">Nom complet</span>
+                            <span class="fw-bold fs-5 text-dark">@Model.Utilisateur.Nom @Model.Utilisateur.Prenom</span>
+                        </li>
+                        <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent">
+                            <span class="text-muted fw-semibold">Faculté</span>
+                            <span class="fw-bold text-dark">@Model.Filiere?.Faculte?.NomFaculte</span>
+                        </li>
+                        <li class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent border-bottom-0">
+                            <span class="text-muted fw-semibold">Filière</span>
+                            <span class="fw-bold text-dark">@Model.Filiere?.NomFiliere</span>
+                        </li>
+                    </ul>
+
+                    <!-- BOUTON DE CORRECTION (Redirection en dur vers l'inscription) -->
+                    <div class="d-grid gap-2 mt-4">
+                        <!-- On utilise href="/Registration/Step1" pour forcer la redirection -->
+                        <a href="/Registration/Step1" class="btn btn-warning btn-lg rounded-pill py-3 fw-bold text-dark shadow-sm w-100">
+                            <i class="bi bi-pencil-square me-2"></i> Corriger et resoumettre mon dossier
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Le bouton "Se déconnecter" a été supprimé d'ici -->
+            
         </div>
     </div>
 </div>

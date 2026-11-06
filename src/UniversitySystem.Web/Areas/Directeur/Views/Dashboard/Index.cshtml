@@ -1,0 +1,28 @@
+@{
+    Layout = "_Layout";
+}
+@{
+    ViewData["Title"] = "Tableau de bord Directeur";
+    var filieres = ViewBag.Filieres as List<UniversitySystem.Domain.Entities.Filiere> ?? new List<UniversitySystem.Domain.Entities.Filiere>();
+    var effectifs = ViewBag.Effectifs as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<h2>Tableau de bord Directeur</h2>
+
+<div class="row mt-4">
+    @foreach (var f in filieres)
+    {
+        var effectif = effectifs.ContainsKey(f.IdFiliere) ? effectifs[f.IdFiliere] : 0;
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    @f.NomFiliere
+                </div>
+                <div class="card-body">
+                    <p class="mb-0"><strong>Faculté :</strong> @f.Faculte.NomFaculte</p>
+                    <p class="mb-0"><strong>Effectif validé :</strong> @effectif étudiants</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

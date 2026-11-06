@@ -6,108 +6,126 @@
 }
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Bachelier - Identification</h2>
-
-    <!-- Stepper (indicateur d'étapes) -->
-    <div class="d-flex justify-content-center mb-4">
-        <div class="text-primary fw-bold me-3">1. Identité</div>
-        <div class="text-muted me-3">→ 2. Parcours & Notes</div>
-        <div class="text-muted">→ 3. Pièces jointes</div>
-    </div>
-
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
+        <div class="col-lg-8">
+            <!-- Titre -->
+            <div class="text-center mb-5">
+                <h1 class="fw-bold text-primary">Bachelier - Identification</h1>
+                <p class="text-muted">Remplissez vos informations personnelles pour commencer votre inscription.</p>
+            </div>
+
+            <!-- Stepper (Indicateur d'étapes) -->
+            <div class="d-flex justify-content-center mb-5">
+                <div class="step active">
+                    <span class="step-circle">1</span>
+                    <span class="step-label">Identité</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <span class="step-circle">2</span>
+                    <span class="step-label">Parcours</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <span class="step-circle">3</span>
+                    <span class="step-label">Documents</span>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-5">
                     <form asp-action="Step1" method="post">
                         @Html.AntiForgeryToken()
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                         <!-- Ligne 1 : Numéro de table + Session -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="NumTableBac" class="form-label"></label>
-                                <input asp-for="NumTableBac" class="form-control" />
-                                <span asp-validation-for="NumTableBac" class="text-danger"></span>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="NumTableBac" class="form-label fw-semibold">Numéro de table BAC</label>
+                                <input asp-for="NumTableBac" class="form-control form-control-lg rounded-3" placeholder="Ex: 123456" />
+                                <span asp-validation-for="NumTableBac" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="SessionBac" class="form-label"></label>
-                                <select asp-for="SessionBac" class="form-select">
+                            <div class="col-md-6">
+                                <label asp-for="SessionBac" class="form-label fw-semibold">Session du BAC</label>
+                                <select asp-for="SessionBac" class="form-select form-select-lg rounded-3">
                                     @for (int i = DateTime.UtcNow.Year; i >= 2010; i--)
                                     {
                                         <option value="@i">@i</option>
                                     }
                                 </select>
-                                <span asp-validation-for="SessionBac" class="text-danger"></span>
+                                <span asp-validation-for="SessionBac" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <!-- Ligne 2 : Nom + Prénom -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Nom" class="form-label"></label>
-                                <input asp-for="Nom" class="form-control" />
-                                <span asp-validation-for="Nom" class="text-danger"></span>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Nom" class="form-label fw-semibold">Nom</label>
+                                <input asp-for="Nom" class="form-control form-control-lg rounded-3" placeholder="Votre nom" />
+                                <span asp-validation-for="Nom" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Prenom" class="form-label"></label>
-                                <input asp-for="Prenom" class="form-control" />
-                                <span asp-validation-for="Prenom" class="text-danger"></span>
+                            <div class="col-md-6">
+                                <label asp-for="Prenom" class="form-label fw-semibold">Prénom</label>
+                                <input asp-for="Prenom" class="form-control form-control-lg rounded-3" placeholder="Votre prénom" />
+                                <span asp-validation-for="Prenom" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <!-- Ligne 3 : Genre + Date Naissance + Lieu -->
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label asp-for="Genre" class="form-label"></label>
-                                <div>
-                                    <div class="form-check form-check-inline">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label asp-for="Genre" class="form-label fw-semibold">Genre</label>
+                                <div class="d-flex gap-3 mt-2">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="radio" asp-for="Genre" value="@((int)Genre.Masculin)" id="genreM" />
                                         <label class="form-check-label" for="genreM">Masculin</label>
                                     </div>
-                                    <div class="form-check form-check-inline">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="radio" asp-for="Genre" value="@((int)Genre.Feminin)" id="genreF" />
                                         <label class="form-check-label" for="genreF">Féminin</label>
                                     </div>
                                 </div>
-                                <span asp-validation-for="Genre" class="text-danger"></span>
+                                <span asp-validation-for="Genre" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label asp-for="DateNaissance" class="form-label"></label>
-                                <input asp-for="DateNaissance" type="date" class="form-control" />
-                                <span asp-validation-for="DateNaissance" class="text-danger"></span>
+                            <div class="col-md-4">
+                                <label asp-for="DateNaissance" class="form-label fw-semibold">Date de naissance</label>
+                                <input asp-for="DateNaissance" type="date" class="form-control form-control-lg rounded-3" />
+                                <span asp-validation-for="DateNaissance" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label asp-for="LieuNaissance" class="form-label"></label>
-                                <input asp-for="LieuNaissance" class="form-control" />
-                                <span asp-validation-for="LieuNaissance" class="text-danger"></span>
+                            <div class="col-md-4">
+                                <label asp-for="LieuNaissance" class="form-label fw-semibold">Lieu de naissance</label>
+                                <input asp-for="LieuNaissance" class="form-control form-control-lg rounded-3" placeholder="Ville" />
+                                <span asp-validation-for="LieuNaissance" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <!-- Ligne 4 : Email -->
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" type="email" class="form-control" placeholder="nom@exemple.com" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                        <div class="mb-4">
+                            <label asp-for="Email" class="form-label fw-semibold">Adresse email</label>
+                            <input asp-for="Email" type="email" class="form-control form-control-lg rounded-3" placeholder="nom@exemple.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
                         <!-- Ligne 5 : Mots de passe -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="MotDePasse" class="form-label"></label>
-                                <input asp-for="MotDePasse" type="password" class="form-control" />
-                                <span asp-validation-for="MotDePasse" class="text-danger"></span>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="MotDePasse" class="form-label fw-semibold">Mot de passe</label>
+                                <input asp-for="MotDePasse" type="password" class="form-control form-control-lg rounded-3" />
+                                <span asp-validation-for="MotDePasse" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="ConfirmMotDePasse" class="form-label"></label>
-                                <input asp-for="ConfirmMotDePasse" type="password" class="form-control" />
-                                <span asp-validation-for="ConfirmMotDePasse" class="text-danger"></span>
+                            <div class="col-md-6">
+                                <label asp-for="ConfirmMotDePasse" class="form-label fw-semibold">Confirmer le mot de passe</label>
+                                <input asp-for="ConfirmMotDePasse" type="password" class="form-control form-control-lg rounded-3" />
+                                <span asp-validation-for="ConfirmMotDePasse" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <!-- Bouton de soumission -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">Suivant →</button>
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 fw-semibold">Suivant →</button>
+                            <a href="/" class="btn btn-outline-secondary btn-lg rounded-pill py-3">Annuler</a>
                         </div>
                     </form>
                 </div>
